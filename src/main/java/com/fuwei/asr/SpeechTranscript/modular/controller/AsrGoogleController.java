@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fuwei.asr.SpeechTranscript.common.controller.BaseController;
+import com.fuwei.asr.SpeechTranscript.constant.CodeMsgEnum;
+import com.fuwei.asr.SpeechTranscript.util.ResultVoUtil;
 //Imports the Google Cloud client library
 import com.google.cloud.speech.v1p1beta1.RecognitionAudio;
 import com.google.cloud.speech.v1p1beta1.RecognitionConfig;
@@ -43,7 +45,7 @@ public class AsrGoogleController extends BaseController {
 		log.info("test speechToText info log ....");
 		log.error("test speechToText error log ....");
 		
-		return null;
+		return ResultVoUtil.success();
 	}	
 
 	/**
@@ -59,7 +61,7 @@ public class AsrGoogleController extends BaseController {
 		log.info("test testSdkApi info log ....");
 		log.error("test testSdkApi error log ....");
 				
-		
+		String text = "";
 
 		Map<String, String> map = System.getenv();
 		if (map.containsKey("GOOGLE_APPLICATION_CREDENTIALS")) {
@@ -90,22 +92,27 @@ public class AsrGoogleController extends BaseController {
 
 			System.out.println("success to builds the sync recognize request");
 
-			// Performs speech recognition on the audio file
-			RecognizeResponse response = speechClient.recognize(config, audio);
-			List<SpeechRecognitionResult> results = response.getResultsList();
-
-			System.out.println("success to performs speech recognition on the audio file");
-
-			for (SpeechRecognitionResult result : results) {
-				// There can be several alternative transcripts for a given chunk of speech.
-				// Just use the
-				// first (most likely) one here.
-				SpeechRecognitionAlternative alternative = result.getAlternativesList().get(0);
-				System.out.printf("Transcription: %s%n", alternative.getTranscript());
-			}
+//			// Performs speech recognition on the audio file
+//			RecognizeResponse response = speechClient.recognize(config, audio);
+//			List<SpeechRecognitionResult> results = response.getResultsList();
+//
+//			System.out.println("success to performs speech recognition on the audio file");
+//
+//			
+//			
+//			
+//			for (SpeechRecognitionResult result : results) {
+//				// There can be several alternative transcripts for a given chunk of speech.
+//				// Just use the
+//				// first (most likely) one here.
+//				SpeechRecognitionAlternative alternative = result.getAlternativesList().get(0);
+//				System.out.printf("Transcription: %s%n", alternative.getTranscript());
+//				
+//				text += alternative.getTranscript();
+//			}
 		}
 
-		return null;
+		return ResultVoUtil.success(CodeMsgEnum.SERVER_SUCCESS, text);
 	}
 
 }
