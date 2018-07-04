@@ -10,6 +10,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -54,7 +55,69 @@ public class AsrGoogleController extends BaseController {
 	 * 
 	 * @throws IOException
 	 */
-	@GetMapping("/testSdkApi")
+//	@GetMapping("/testSdkApi")
+//	public Object testSdkApi(User user) throws IOException {
+//		
+//		
+//		log.debug("test testSdkApi debug log ....");
+//		log.info("test testSdkApi info log ....");
+//		log.error("test testSdkApi error log ....");
+//				
+//		String text = "语音转换文本成功" + user.toString();
+//
+//		Map<String, String> map = System.getenv();
+//		if (map.containsKey("GOOGLE_APPLICATION_CREDENTIALS")) {
+//			String key = "GOOGLE_APPLICATION_CREDENTIALS";
+//			System.out.println(key + "=" + map.get(key));
+//		}
+//
+////		// Instantiates a client
+////		try (SpeechClient speechClient = SpeechClient.create()) {
+////
+////			// The path to the audio file to transcribe
+////			// String fileName =
+////			// "E:\\java_dev\\sts_project\\SpeechTranscript\\src\\main\\resources\\audio.raw";
+////			String fileName = "/root/java-docs-samples/speech/cloud-client/resources/audio.raw";
+////
+////			// Reads the audio file into memory
+////			Path path = Paths.get(fileName);
+////			byte[] data = Files.readAllBytes(path);
+////			ByteString audioBytes = ByteString.copyFrom(data);
+////
+////			System.out.printf("audioBytes size is: %d\n", audioBytes.size());
+////
+////			// Builds the sync recognize request
+////			RecognitionConfig config = RecognitionConfig.newBuilder().setEncoding(AudioEncoding.LINEAR16)
+////					.setSampleRateHertz(16000).setLanguageCode("en-US").build();
+////
+////			RecognitionAudio audio = RecognitionAudio.newBuilder().setContent(audioBytes).build();
+////
+////			System.out.println("success to builds the sync recognize request");
+////
+////			// Performs speech recognition on the audio file
+////			RecognizeResponse response = speechClient.recognize(config, audio);
+////			List<SpeechRecognitionResult> results = response.getResultsList();
+////
+////			System.out.println("success to performs speech recognition on the audio file");
+////
+////			
+////			
+////			
+////			for (SpeechRecognitionResult result : results) {
+////				// There can be several alternative transcripts for a given chunk of speech.
+////				// Just use the
+////				// first (most likely) one here.
+////				SpeechRecognitionAlternative alternative = result.getAlternativesList().get(0);
+////				System.out.printf("Transcription: %s%n", alternative.getTranscript());
+////				
+////				text += alternative.getTranscript();
+////			}
+////		}
+//
+//		return ResultVoUtil.success(CodeMsgEnum.SERVER_SUCCESS, text);
+//	}
+
+	@PostMapping("/testSdkApi")
 	public Object testSdkApi(User user) throws IOException {
 		
 		
@@ -114,6 +177,5 @@ public class AsrGoogleController extends BaseController {
 //		}
 
 		return ResultVoUtil.success(CodeMsgEnum.SERVER_SUCCESS, text);
-	}
-
+	}	
 }
