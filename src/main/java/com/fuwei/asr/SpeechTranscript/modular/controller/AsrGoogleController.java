@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fuwei.asr.SpeechTranscript.common.controller.BaseController;
+import com.fuwei.asr.SpeechTranscript.common.form.User;
 import com.fuwei.asr.SpeechTranscript.constant.CodeMsgEnum;
 import com.fuwei.asr.SpeechTranscript.util.ResultVoUtil;
 //Imports the Google Cloud client library
@@ -54,14 +55,14 @@ public class AsrGoogleController extends BaseController {
 	 * @throws IOException
 	 */
 	@GetMapping("/testSdkApi")
-	public Object testSdkApi() throws IOException {
+	public Object testSdkApi(User user) throws IOException {
 		
 		
 		log.debug("test testSdkApi debug log ....");
 		log.info("test testSdkApi info log ....");
 		log.error("test testSdkApi error log ....");
 				
-		String text = "";
+		String text = "语音转换文本成功" + user.toString();
 
 		Map<String, String> map = System.getenv();
 		if (map.containsKey("GOOGLE_APPLICATION_CREDENTIALS")) {
@@ -112,7 +113,7 @@ public class AsrGoogleController extends BaseController {
 //			}
 //		}
 
-		return ResultVoUtil.success(CodeMsgEnum.SERVER_SUCCESS, "语音转换文本成功");
+		return ResultVoUtil.success(CodeMsgEnum.SERVER_SUCCESS, text);
 	}
 
 }
