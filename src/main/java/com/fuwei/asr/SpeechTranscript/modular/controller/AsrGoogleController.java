@@ -69,29 +69,29 @@ public class AsrGoogleController extends BaseController {
 			System.out.println(key + "=" + map.get(key));
 		}
 
-		// Instantiates a client
-		try (SpeechClient speechClient = SpeechClient.create()) {
-
-			// The path to the audio file to transcribe
-			// String fileName =
-			// "E:\\java_dev\\sts_project\\SpeechTranscript\\src\\main\\resources\\audio.raw";
-			String fileName = "/root/java-docs-samples/speech/cloud-client/resources/audio.raw";
-
-			// Reads the audio file into memory
-			Path path = Paths.get(fileName);
-			byte[] data = Files.readAllBytes(path);
-			ByteString audioBytes = ByteString.copyFrom(data);
-
-			System.out.printf("audioBytes size is: %d\n", audioBytes.size());
-
-			// Builds the sync recognize request
-			RecognitionConfig config = RecognitionConfig.newBuilder().setEncoding(AudioEncoding.LINEAR16)
-					.setSampleRateHertz(16000).setLanguageCode("en-US").build();
-
-			RecognitionAudio audio = RecognitionAudio.newBuilder().setContent(audioBytes).build();
-
-			System.out.println("success to builds the sync recognize request");
-
+//		// Instantiates a client
+//		try (SpeechClient speechClient = SpeechClient.create()) {
+//
+//			// The path to the audio file to transcribe
+//			// String fileName =
+//			// "E:\\java_dev\\sts_project\\SpeechTranscript\\src\\main\\resources\\audio.raw";
+//			String fileName = "/root/java-docs-samples/speech/cloud-client/resources/audio.raw";
+//
+//			// Reads the audio file into memory
+//			Path path = Paths.get(fileName);
+//			byte[] data = Files.readAllBytes(path);
+//			ByteString audioBytes = ByteString.copyFrom(data);
+//
+//			System.out.printf("audioBytes size is: %d\n", audioBytes.size());
+//
+//			// Builds the sync recognize request
+//			RecognitionConfig config = RecognitionConfig.newBuilder().setEncoding(AudioEncoding.LINEAR16)
+//					.setSampleRateHertz(16000).setLanguageCode("en-US").build();
+//
+//			RecognitionAudio audio = RecognitionAudio.newBuilder().setContent(audioBytes).build();
+//
+//			System.out.println("success to builds the sync recognize request");
+//
 //			// Performs speech recognition on the audio file
 //			RecognizeResponse response = speechClient.recognize(config, audio);
 //			List<SpeechRecognitionResult> results = response.getResultsList();
@@ -110,9 +110,9 @@ public class AsrGoogleController extends BaseController {
 //				
 //				text += alternative.getTranscript();
 //			}
-		}
+//		}
 
-		return ResultVoUtil.success(CodeMsgEnum.SERVER_SUCCESS, text);
+		return ResultVoUtil.success(CodeMsgEnum.SERVER_SUCCESS, "语音转换文本成功");
 	}
 
 }
