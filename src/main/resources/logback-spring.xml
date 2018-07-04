@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+	<!-- 
+		 ${PID}，当前进程ID
+		 ${LOG_FILE}，Spring Boot配置文件中logging.file的值
+		 ${LOG_PATH}，Spring Boot配置文件中logging.path的值	
+     
+    <springProperty scope="context" name="LOG_FILE" source="logging.file"/>
+    <springProperty scope="context" name="LOG_PATH" source="logging.path"/>     
+     -->
+     
+    <!-- 此xml在spring-boot-1.5.3.RELEASE.jar里 -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml" />    
+    <!-- 使用默认的控制台输出 -->
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml" />    
+    <!-- 开启后可以通过jmx动态控制日志级别(springboot Admin的功能) -->
+    <!--<jmxConfigurator/>-->     
+
+
+	<!-- 控制台自定义日志输出格式 -->
+<!--	
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+	    	<Pattern>.%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg %n</Pattern>
+		</encoder>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+	    	<level>TRACE</level>
+		</filter>
+    </appender>
+-->
+
+	<!-- 只输出info日志到相应文件中,按天创建info日志 -->	
+    <appender name="FILEINFOLOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    	<!-- 过滤掉error日志 -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>DENY</onMatch>
+            <onMismatch>ACCEPT</onMismatch>
+        </filter>
+        <encoder>
+			<pattern>${FILE_LOG_PATTERN}</pattern>
+			<charset>utf8</charset>
+        </encoder>
+        <!-- 滚动策略,每天一个日志文件 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--路径-->
+            <fileNamePattern>${LOG_PATH}info/%d{yyyyMMdd}-info-${LOG_FILE}</fileNamePattern>
+        </rollingPolicy>
+    </appender>
+
+	<!-- 只输出error日志到相应文件中,按天创建error日志 -->
+    <appender name="FILEERRORLOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    	<!-- 过滤掉info日志 -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <encoder>
+			<pattern>${FILE_LOG_PATTERN}</pattern>
+			<charset>utf8</charset>
+        </encoder>
+        <!--滚动策略-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--路径-->
+            <fileNamePattern>${LOG_PATH}error/%d{yyyyMMdd}-error-${LOG_FILE}</fileNamePattern>
+        </rollingPolicy>
+    </appender>
+    
+    <!-- 日志文件${LOG_PATH}${LOG_FILE}中只会保留当天的日志信息：包括info，error -->
+    <!-- ${LOG_PATH}daily文件夹中按照每天一个压缩包存放对应天的日志 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${LOG_PATH}${LOG_FILE}</File>
+        <encoder>
+            <pattern>%date [%level] [%thread] %logger{60} [%file : %line] %msg%n</pattern>
+            <charset>utf8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 添加.gz 历史日志会启用压缩 大大缩小日志文件所占空间 -->
+            <fileNamePattern>${LOG_PATH}daily/${LOG_FILE}.%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <maxHistory>30</maxHistory><!--  保留30天日志 -->
+        </rollingPolicy>
+    </appender>
+	
+	<!-- 定义各个不同组件的日志级别 -->
+    <!--<logger name="org.springframework" level="error"/>-->
+    <!--<logger name="jdbc.connection" level="OFF"/>-->
+    <!--<logger name="org.apache" level="error"/>-->
+    <!--<logger name="com.alibaba" level="error"/>-->
+    <!--<logger name="org.apache.kafka.clients.producer.ProducerConfig" level="warn"/>-->
+
+	<!-- 不同 profile 下调整日志级别 -->
+	<springProfile name="develop">
+	<!-- * 通配符 设置log打印级别 对所有类有效TRACE, DEBUG, INFO, WARN, ERROR, ALL 和 OFF-->
+	    <root level="INFO">
+	        <appender-ref ref="CONSOLE"/>
+	        <appender-ref ref="FILEINFOLOG"/>
+	        <appender-ref ref="FILEERRORLOG"/>
+	        <appender-ref ref="FILE"/>
+	    </root>	
+	</springProfile>
+	
+	<springProfile name="produce">
+	<!-- * 通配符 设置log打印级别 对所有类有效TRACE, DEBUG, INFO, WARN, ERROR, ALL 和 OFF-->
+	    <root level="INFO">
+	        <appender-ref ref="CONSOLE"/>
+	        <appender-ref ref="FILEINFOLOG"/>
+	        <appender-ref ref="FILEERRORLOG"/>
+	        <appender-ref ref="FILE"/>
+	    </root>	
+	</springProfile>	
+
+</configuration>
