@@ -1,7 +1,5 @@
 package com.fuwei.asr.SpeechTranscript.modular.controller;
 
-import static org.hamcrest.CoreMatchers.nullValue;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -63,49 +61,49 @@ public class AsrGoogleController extends BaseController {
 				
 		
 
-//		Map<String, String> map = System.getenv();
-//		if (map.containsKey("GOOGLE_APPLICATION_CREDENTIALS")) {
-//			String key = "GOOGLE_APPLICATION_CREDENTIALS";
-//			System.out.println(key + "=" + map.get(key));
-//		}
-//
-//		// Instantiates a client
-//		try (SpeechClient speechClient = SpeechClient.create()) {
-//
-//			// The path to the audio file to transcribe
-//			// String fileName =
-//			// "E:\\java_dev\\sts_project\\SpeechTranscript\\src\\main\\resources\\audio.raw";
-//			String fileName = "/root/java-docs-samples/speech/cloud-client/resources/audio.raw";
-//
-//			// Reads the audio file into memory
-//			Path path = Paths.get(fileName);
-//			byte[] data = Files.readAllBytes(path);
-//			ByteString audioBytes = ByteString.copyFrom(data);
-//
-//			System.out.printf("audioBytes size is: %d\n", audioBytes.size());
-//
-//			// Builds the sync recognize request
-//			RecognitionConfig config = RecognitionConfig.newBuilder().setEncoding(AudioEncoding.LINEAR16)
-//					.setSampleRateHertz(16000).setLanguageCode("en-US").build();
-//
-//			RecognitionAudio audio = RecognitionAudio.newBuilder().setContent(audioBytes).build();
-//
-//			System.out.println("success to builds the sync recognize request");
-//
-//			// Performs speech recognition on the audio file
-//			RecognizeResponse response = speechClient.recognize(config, audio);
-//			List<SpeechRecognitionResult> results = response.getResultsList();
-//
-//			System.out.println("success to performs speech recognition on the audio file");
-//
-//			for (SpeechRecognitionResult result : results) {
-//				// There can be several alternative transcripts for a given chunk of speech.
-//				// Just use the
-//				// first (most likely) one here.
-//				SpeechRecognitionAlternative alternative = result.getAlternativesList().get(0);
-//				System.out.printf("Transcription: %s%n", alternative.getTranscript());
-//			}
-//		}
+		Map<String, String> map = System.getenv();
+		if (map.containsKey("GOOGLE_APPLICATION_CREDENTIALS")) {
+			String key = "GOOGLE_APPLICATION_CREDENTIALS";
+			System.out.println(key + "=" + map.get(key));
+		}
+
+		// Instantiates a client
+		try (SpeechClient speechClient = SpeechClient.create()) {
+
+			// The path to the audio file to transcribe
+			// String fileName =
+			// "E:\\java_dev\\sts_project\\SpeechTranscript\\src\\main\\resources\\audio.raw";
+			String fileName = "/root/java-docs-samples/speech/cloud-client/resources/audio.raw";
+
+			// Reads the audio file into memory
+			Path path = Paths.get(fileName);
+			byte[] data = Files.readAllBytes(path);
+			ByteString audioBytes = ByteString.copyFrom(data);
+
+			System.out.printf("audioBytes size is: %d\n", audioBytes.size());
+
+			// Builds the sync recognize request
+			RecognitionConfig config = RecognitionConfig.newBuilder().setEncoding(AudioEncoding.LINEAR16)
+					.setSampleRateHertz(16000).setLanguageCode("en-US").build();
+
+			RecognitionAudio audio = RecognitionAudio.newBuilder().setContent(audioBytes).build();
+
+			System.out.println("success to builds the sync recognize request");
+
+			// Performs speech recognition on the audio file
+			RecognizeResponse response = speechClient.recognize(config, audio);
+			List<SpeechRecognitionResult> results = response.getResultsList();
+
+			System.out.println("success to performs speech recognition on the audio file");
+
+			for (SpeechRecognitionResult result : results) {
+				// There can be several alternative transcripts for a given chunk of speech.
+				// Just use the
+				// first (most likely) one here.
+				SpeechRecognitionAlternative alternative = result.getAlternativesList().get(0);
+				System.out.printf("Transcription: %s%n", alternative.getTranscript());
+			}
+		}
 
 		return null;
 	}
