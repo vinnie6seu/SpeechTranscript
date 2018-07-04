@@ -1,0 +1,9 @@
+# port项目启动端口
+# context-path网址访问项目名
+# servlet-path网址访问方法名
+server:
+  port: 8085
+  servlet:
+    context-path: /SpeechTranscript
+    path: /*
+  
