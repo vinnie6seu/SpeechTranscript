@@ -155,7 +155,7 @@ public class AsrGoogleController extends BaseController {
 
 			// Builds the sync recognize request
 			RecognitionConfig config = RecognitionConfig.newBuilder().setEncoding(AudioEncoding.LINEAR16)
-					.setSampleRateHertz(16000).setLanguageCode("en-US").build();
+					.setSampleRateHertz(8000).setLanguageCode("en-US").build();
 
 			RecognitionAudio audio = RecognitionAudio.newBuilder().setContent(audioBytes).build();
 
