@@ -182,7 +182,7 @@ public class AsrGoogleController extends BaseController {
 		}
 		
 		
-		log.info("request:[%s] response:[%s]", user.toString(), text);
+		log.info("request:[" + user.toString() + "] response:[" + text + "]");
 		
 
 		return ResultVoUtil.success(CodeMsgEnum.SERVER_SUCCESS, text);
