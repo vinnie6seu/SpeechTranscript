@@ -1,6 +1,8 @@
 package com.fuwei.asr.SpeechTranscript.modular.service;
 
+import org.springframework.stereotype.Service;
 
+@Service
 public class JniShmService {
 	
 	/**
