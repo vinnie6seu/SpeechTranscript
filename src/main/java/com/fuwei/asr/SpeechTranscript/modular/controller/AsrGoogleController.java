@@ -45,7 +45,7 @@ public class AsrGoogleController extends BaseController {
 	private Logger log = LoggerFactory.getLogger(this.getClass());
 	
 	@Autowired
-	JniShmService jniShmService;
+	private JniShmService jniShmService;
 	
 	@PostMapping("/speechToText")
 	public Object speechToText(@RequestBody HttpJson requestHttpJson) {

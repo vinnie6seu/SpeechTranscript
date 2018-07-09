@@ -50,6 +50,6 @@ public class JniShmService {
 	}
 
 	public void shmTerm() {
-		shmTerm(); 
+		JNI_shmTerm(); 
 	}
 }
