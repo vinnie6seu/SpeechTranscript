@@ -9,7 +9,7 @@ public class JniShmService {
 	 * 加载动态库
 	 */
 	static {
-		System.setProperty("java.library.path", "/home/vinnie/my_project/SpeechProcess/lib");
+		// System.setProperty("java.library.path", "/home/vinnie/my_project/SpeechProcess/lib");
 		System.loadLibrary("JniShm");
 	}
 	
