@@ -9,13 +9,14 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alibaba.fastjson.JSONObject;
 import com.fuwei.asr.SpeechTranscript.common.controller.BaseController;
+import com.fuwei.asr.SpeechTranscript.common.form.HttpJson;
 import com.fuwei.asr.SpeechTranscript.common.form.User;
 import com.fuwei.asr.SpeechTranscript.constant.CodeMsgEnum;
 import com.fuwei.asr.SpeechTranscript.util.ResultVoUtil;
@@ -41,14 +42,19 @@ import com.google.protobuf.ByteString;
 public class AsrGoogleController extends BaseController {
 	private Logger log = LoggerFactory.getLogger(this.getClass());
 	
-	@GetMapping("/speechToText")
-	public Object speechToText() {
+	@PostMapping("/speechToText")
+	public Object speechToText(@RequestBody HttpJson requestHttpJson) {
 		
-		log.debug("test speechToText debug log ....");
-		log.info("test speechToText info log ....");
-		log.error("test speechToText error log ....");
+		log.info("request json is :[" + requestHttpJson + "]");
 		
-		return ResultVoUtil.success();
+		
+		// 调用谷歌 asr 接口完成语音转文本
+		
+		
+		HttpJson responseHttpJson = new HttpJson();
+		responseHttpJson.setId(requestHttpJson.getId());
+		
+		return ResultVoUtil.success(CodeMsgEnum.SERVER_SUCCESS, JSONObject.toJSONString(responseHttpJson));
 	}	
 
 	/**
