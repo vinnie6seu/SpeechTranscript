@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,7 @@ import com.fuwei.asr.SpeechTranscript.common.controller.BaseController;
 import com.fuwei.asr.SpeechTranscript.common.form.HttpJson;
 import com.fuwei.asr.SpeechTranscript.common.form.User;
 import com.fuwei.asr.SpeechTranscript.constant.CodeMsgEnum;
+import com.fuwei.asr.SpeechTranscript.modular.service.JniShmService;
 import com.fuwei.asr.SpeechTranscript.util.ResultVoUtil;
 //Imports the Google Cloud client library
 import com.google.cloud.speech.v1p1beta1.RecognitionAudio;
@@ -42,15 +44,32 @@ import com.google.protobuf.ByteString;
 public class AsrGoogleController extends BaseController {
 	private Logger log = LoggerFactory.getLogger(this.getClass());
 	
+	@Autowired
+	JniShmService jniShmService;
+	
 	@PostMapping("/speechToText")
 	public Object speechToText(@RequestBody HttpJson requestHttpJson) {
 		
 		log.info("request json is :[" + requestHttpJson + "]");
 		
+		// 装载共享内存
+		jniShmService.shmInit();
+		
+		// 读取共享内存中的语音数据
+		String speech = jniShmService.readSpeechRecordShm(requestHttpJson.getId());
+		
+		log.info("shm id:[" + requestHttpJson.getId() + "] speech is:[" + speech + "]");
 		
 		// 调用谷歌 asr 接口完成语音转文本
+		String text = "";
 		
+		// 写入共享内存文本数据
+		jniShmService.writeTextRecordShm(requestHttpJson.getId(), text);
 		
+		// 卸载共享内存
+		jniShmService.shmTerm();
+		
+		// 告知客户端文本数据写入位置
 		HttpJson responseHttpJson = new HttpJson();
 		responseHttpJson.setId(requestHttpJson.getId());
 		
