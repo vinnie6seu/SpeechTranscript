@@ -2,20 +2,14 @@ package com.fuwei.asr.SpeechTranscript.modular.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 import org.ini4j.Config;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
-import com.fuwei.asr.SpeechTranscript.modular.controller.AsrGoogleController;
 
 import lombok.extern.slf4j.Slf4j;
 

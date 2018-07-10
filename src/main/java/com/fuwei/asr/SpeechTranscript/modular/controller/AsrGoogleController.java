@@ -52,8 +52,8 @@ public class AsrGoogleController extends BaseController {
 		
 		log.info(String.format("request json is :[%s]", requestHttpJson.toString()));
 		
-		// 装载共享内存
-		jniShmService.shmInit();
+//		// 装载共享内存
+//		jniShmService.shmInit();
 		
 		// 读取共享内存中的语音数据
 		String speech = jniShmService.readSpeechRecordShm(requestHttpJson.getId());
@@ -66,8 +66,8 @@ public class AsrGoogleController extends BaseController {
 		// 写入共享内存文本数据
 		jniShmService.writeTextRecordShm(requestHttpJson.getId(), text);
 		
-		// 卸载共享内存
-		jniShmService.shmTerm();
+//		// 卸载共享内存
+//		jniShmService.shmTerm();
 		
 		// 告知客户端文本数据写入位置
 		HttpJson responseHttpJson = new HttpJson();
