@@ -56,10 +56,26 @@ public class JniShmService {
 	}
 	
 	public void printLogInfo(String info) {
+		if (log == null) {
+			System.out.println("log is null");
+			return ;
+		}
+		if (info == null) {
+			System.out.println("info is null");
+			return ;
+		}		
 		log.info(info);
 	}
 	
 	public void printLogError(String error) {
+		if (log == null) {
+			System.out.println("log is null");
+			return ;
+		}
+		if (error == null) {
+			System.out.println("error is null");
+			return ;
+		}			
 		log.error(error);
 	}	
 }
