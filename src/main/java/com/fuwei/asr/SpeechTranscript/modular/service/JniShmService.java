@@ -1,21 +1,28 @@
 package com.fuwei.asr.SpeechTranscript.modular.service;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.ini4j.Config;
+import org.ini4j.Ini;
+import org.ini4j.Profile.Section;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.fuwei.asr.SpeechTranscript.util.ConfigReaderUtil;
+import com.fuwei.asr.SpeechTranscript.modular.controller.AsrGoogleController;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class JniShmService {
-//	private Logger log = LoggerFactory.getLogger(this.getClass());
+//	private static final Logger log = LoggerFactory.getLogger(JniShmService.class);
 	
 	
 	/**
@@ -62,32 +69,37 @@ public class JniShmService {
 		}
 		
 		// 从配置文件 SpeechProcess.cfg 中读到 shmSpeechToTextKey、shmSpeechToTextNum
-		ConfigReaderUtil configReaderUtil = new ConfigReaderUtil(configFullPath);
+		int shmSpeechToTextKey;
+		int shmSpeechToTextNum;
 		
-		Map<String, Map<String, List<String>>> cfg = configReaderUtil.get();
-		for (Map.Entry<String, Map<String, List<String>>> entry : cfg.entrySet()) {
-			log.info(String.format("section:", entry.getKey()));
-			for (Map.Entry<String, List<String>> item : entry.getValue().entrySet()) {
-				log.info(String.format("%s = %s", item.getKey(), item.getValue().toString()));
-			}
-		}
-		
-		List<String> keyList = configReaderUtil.get("SHM", "SPEECH_TO_TEXT_KEY");
-		if (keyList.isEmpty()) {
-			log.error("can not find [SHM SPEECH_TO_TEXT_KEY] in SpeechProcess.cfg");
-			return ;			
-		}
-		int shmSpeechToTextKey = Integer.valueOf(keyList.get(0));
-		
-		List<String> numList = configReaderUtil.get("SHM", "SPEECH_TO_TEXT_NUM");
-		if (numList.isEmpty()) {
-			log.error("can not find [SHM SPEECH_TO_TEXT_NUM] in SpeechProcess.cfg");
-			return ;			
-		}		
-		int shmSpeechToTextNum = Integer.valueOf(numList.get(0));
-		
+        Config cfg = new Config();  
+        // 设置Section允许出现重复  
+        cfg.setMultiSection(true);  
+        Ini ini = new Ini();  
+        ini.setConfig(cfg);  
+        try {  
+            // 加载配置文件  
+            ini.load(new File(configFullPath));  
+
+            Section section = ini.get("SHM");  
+            String shmSpeechToTextKeyStr = section.get("SPEECH_TO_TEXT_KEY");  
+            String shmSpeechToTextNumStr = section.get("SPEECH_TO_TEXT_NUM"); 
+            
+            if (shmSpeechToTextKeyStr.isEmpty() || shmSpeechToTextNumStr.isEmpty()) {
+            	log.error("in SpeechProcess.cfg can not find [SHM SPEECH_TO_TEXT_KEY] or [SHM SPEECH_TO_TEXT_NUM]");
+            	return ;
+            }
+            
+    		shmSpeechToTextKey = Integer.valueOf(shmSpeechToTextKeyStr);
+    		shmSpeechToTextNum = Integer.valueOf(shmSpeechToTextNumStr);
+        } catch (IOException e) {  
+            log.error(e.toString());
+            return ;
+        } 		
+
 		// 通过 JNI 调用 c 代码装载共享内存
 		log.info(String.format("start to load shm shmSpeechToTextKey:[%d] shmSpeechToTextNum:[%d]", shmSpeechToTextKey, shmSpeechToTextNum));
+		
 		JNI_shmInit(shmSpeechToTextKey, shmSpeechToTextNum); 
 	}
 

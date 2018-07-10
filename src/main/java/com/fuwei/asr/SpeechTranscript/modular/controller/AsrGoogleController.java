@@ -42,7 +42,7 @@ import com.google.protobuf.ByteString;
 @RestController
 @RequestMapping("/AsrGoogle")
 public class AsrGoogleController extends BaseController {
-	private Logger log = LoggerFactory.getLogger(this.getClass());
+	private static final Logger log = LoggerFactory.getLogger(AsrGoogleController.class);
 	
 	@Autowired
 	private JniShmService jniShmService;
