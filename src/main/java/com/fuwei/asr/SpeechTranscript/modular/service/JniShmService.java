@@ -63,6 +63,15 @@ public class JniShmService {
 		
 		// 从配置文件 SpeechProcess.cfg 中读到 shmSpeechToTextKey、shmSpeechToTextNum
 		ConfigReaderUtil configReaderUtil = new ConfigReaderUtil(configFullPath);
+		
+		Map<String, Map<String, List<String>>> cfg = configReaderUtil.get();
+		for (Map.Entry<String, Map<String, List<String>>> entry : cfg.entrySet()) {
+			log.info(String.format("section:", entry.getKey()));
+			for (Map.Entry<String, List<String>> item : entry.getValue().entrySet()) {
+				log.info(String.format("%s = %s", item.getKey(), item.getValue().toString()));
+			}
+		}
+		
 		List<String> keyList = configReaderUtil.get("SHM", "SPEECH_TO_TEXT_KEY");
 		if (keyList.isEmpty()) {
 			log.error("can not find [SHM SPEECH_TO_TEXT_KEY] in SpeechProcess.cfg");
