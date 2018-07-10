@@ -50,15 +50,15 @@ public class AsrGoogleController extends BaseController {
 	@PostMapping("/speechToText")
 	public Object speechToText(@RequestBody HttpJson requestHttpJson) {
 		
-		log.info("request json is :[" + requestHttpJson + "]");
+		log.info(String.format("request json is :[%s]", requestHttpJson.toString()));
 		
 		// 装载共享内存
 		jniShmService.shmInit();
 		
 		// 读取共享内存中的语音数据
 		String speech = jniShmService.readSpeechRecordShm(requestHttpJson.getId());
-		
-		log.info("shm id:[" + requestHttpJson.getId() + "] speech is:[" + speech + "]");
+
+		log.info(String.format("shm id:[%d] speech is:[%s]", requestHttpJson.getId(), speech));
 		
 		// 调用谷歌 asr 接口完成语音转文本
 		String text = "";
