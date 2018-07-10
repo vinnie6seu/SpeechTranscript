@@ -1,15 +1,17 @@
 package com.fuwei.asr.SpeechTranscript.modular.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class JniShmService {
+	private Logger log = LoggerFactory.getLogger(this.getClass());
 	
 	/**
 	 * 加载动态库
 	 */
 	static {
-		// System.setProperty("java.library.path", "/home/vinnie/my_project/SpeechProcess/lib");
 		System.loadLibrary("JniShm");
 	}
 	
@@ -33,6 +35,16 @@ public class JniShmService {
 	 */
 	private native void JNI_shmTerm(); 
 	
+	/**
+	 * 让 c 代码调用 printLogInfo 函数，输出 info 日志
+	 */
+	private native void JNI_callback_printLogInfo(String info);
+	
+	/**
+	 * 让 c 代码调用 printLogError 函数，输出 error 日志
+	 */
+	private native void JNI_callback_printLogError(String error);
+	
 	//////////////////////////////////////////////////////////////////////////////////
 	
 	public void shmInit() {
@@ -52,4 +64,12 @@ public class JniShmService {
 	public void shmTerm() {
 		JNI_shmTerm(); 
 	}
+	
+	public void printLogInfo(String info) {
+		log.info(info);
+	}
+	
+	public void printLogError(String error) {
+		log.error(error);
+	}	
 }
