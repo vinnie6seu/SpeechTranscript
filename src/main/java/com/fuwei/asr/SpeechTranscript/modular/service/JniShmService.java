@@ -35,16 +35,6 @@ public class JniShmService {
 	 */
 	private native void JNI_shmTerm(); 
 	
-	/**
-	 * 让 c 代码调用 printLogInfo 函数，输出 info 日志
-	 */
-	private native void JNI_callback_printLogInfo(String info);
-	
-	/**
-	 * 让 c 代码调用 printLogError 函数，输出 error 日志
-	 */
-	private native void JNI_callback_printLogError(String error);
-	
 	//////////////////////////////////////////////////////////////////////////////////
 	
 	public void shmInit() {
