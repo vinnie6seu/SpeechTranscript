@@ -62,6 +62,40 @@ public class AsrGoogleController extends BaseController {
 		
 		// 调用谷歌 asr 接口完成语音转文本
 		String text = "";
+		// Instantiates a client
+		try (SpeechClient speechClient = SpeechClient.create()) {
+            // 组成音频数据
+			ByteString audioBytes = ByteString.copyFrom(speech.getBytes());
+
+			log.info(String.format("audioBytes size is: %d\n", audioBytes.size()));
+
+			// Builds the sync recognize request
+			RecognitionConfig config = RecognitionConfig.newBuilder().setEncoding(AudioEncoding.LINEAR16)
+					.setSampleRateHertz(8000).setLanguageCode("en-US").build();
+
+			RecognitionAudio audio = RecognitionAudio.newBuilder().setContent(audioBytes).build();
+
+			log.info("success to builds the sync recognize request");
+
+			// Performs speech recognition on the audio file
+			RecognizeResponse response = speechClient.recognize(config, audio);
+			List<SpeechRecognitionResult> results = response.getResultsList();
+
+			log.info("success to performs speech recognition on the audio file");
+
+			for (SpeechRecognitionResult result : results) {
+				// There can be several alternative transcripts for a given chunk of speech.
+				// Just use the
+				// first (most likely) one here.
+				SpeechRecognitionAlternative alternative = result.getAlternativesList().get(0);
+				
+//				log.info("Transcription: %s%n", alternative.getTranscript());
+
+				text += alternative.getTranscript();
+			}
+		} catch (IOException e) {
+			log.error(ERROR.toString());
+		}	
 		
 		// 写入共享内存文本数据
 		jniShmService.writeTextRecordShm(requestHttpJson.getId(), text);
