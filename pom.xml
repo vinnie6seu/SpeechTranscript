@@ -25,6 +25,7 @@
 		
 		<google-cloud-speech.version>0.49.0-alpha</google-cloud-speech.version>
 		<fastjson.version>1.2.47</fastjson.version>
+		<ini4j.version>0.5.4</ini4j.version>
 	</properties>
 
 	<dependencies>
@@ -53,6 +54,13 @@
 		    <artifactId>fastjson</artifactId>
 		    <version>${fastjson.version}</version>
 		</dependency>
+		
+		<!-- 操作 ini 格式的配置文件 -->
+		<dependency>
+		    <groupId>org.ini4j</groupId>
+		    <artifactId>ini4j</artifactId>
+		    <version>${ini4j.version}</version>
+		</dependency>		
 		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
