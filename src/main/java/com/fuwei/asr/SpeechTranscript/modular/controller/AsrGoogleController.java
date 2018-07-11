@@ -58,7 +58,7 @@ public class AsrGoogleController extends BaseController {
 		// 读取共享内存中的语音数据
 		String speech = jniShmService.readSpeechRecordShm(requestHttpJson.getId());
 
-		log.info(String.format("shm id:[%d] speech is:[%s]", requestHttpJson.getId(), speech));
+		log.info(String.format("shmId:[%d] speechLen:[%d] ", requestHttpJson.getId(), speech.length()));
 		
 		// 调用谷歌 asr 接口完成语音转文本
 		String text = "";
