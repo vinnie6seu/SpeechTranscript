@@ -87,7 +87,7 @@ public class AsrGoogleController extends BaseController {
 
 			log.info("success to performs speech recognition on the audio file");
 			
-			long startTime = System.currentTimeMillis();
+			long startTime = System.nanoTime();
 
 			for (SpeechRecognitionResult result : results) {
 				// There can be several alternative transcripts for a given chunk of speech.
@@ -100,9 +100,9 @@ public class AsrGoogleController extends BaseController {
 				text += alternative.getTranscript();
 			}
 			
-			long endTime = System.currentTimeMillis();
+			long endTime = System.nanoTime();
 			
-			log.info("数据量是:" + audioBytes.size() + " 运行时间:" + (endTime - startTime) + "ms");
+			log.info("speech size:" + audioBytes.size() + " consume time:" + (endTime - startTime) + "ns");
 			
 		} catch (IOException e) {
 			log.error(ERROR.toString());
