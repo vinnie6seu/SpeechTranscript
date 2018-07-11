@@ -32,9 +32,14 @@ public class JniShmService {
 	private native void JNI_shmInit(int shmSpeechToTextKey, int shmSpeechToTextNum); 
 	
 	/**
-	 * 动态库中读取共享内存语音数据
+	 * 动态库中读取共享内存语音数据，废弃
 	 */
 	private native String JNI_readSpeechRecordShm(int id);
+	
+	/**
+	 * 动态库中读取共享内存语音数据，返回 byte[]，因为语言数据中可能有截断符
+	 */
+	private native byte[] JNI_readSpeechRecordByteArrShm(int id);
 	
 	/**
 	 * 动态库中写入共享内存文本数据
@@ -103,6 +108,13 @@ public class JniShmService {
 		
 		return JNI_readSpeechRecordShm(id);
 	}
+	
+	public byte[] readSpeechRecordByteArrShm(Integer id) {
+		// TODO Auto-generated method stub
+		log.info(String.format("start to read speech in shm id:[%d]", id));
+		
+		return JNI_readSpeechRecordByteArrShm(id);
+	}	
 
 	public void writeTextRecordShm(Integer id, String text) {
 		// TODO Auto-generated method stub

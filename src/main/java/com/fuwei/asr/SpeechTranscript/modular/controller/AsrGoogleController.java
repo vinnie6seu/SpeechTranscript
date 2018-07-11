@@ -56,16 +56,20 @@ public class AsrGoogleController extends BaseController {
 //		jniShmService.shmInit();
 		
 		// 读取共享内存中的语音数据
-		String speech = jniShmService.readSpeechRecordShm(requestHttpJson.getId());
-
-		log.info(String.format("shmId:[%d] speechLen:[%d] ", requestHttpJson.getId(), speech.length()));
+//		String speech = jniShmService.readSpeechRecordShm(requestHttpJson.getId());
+//
+//		log.info(String.format("shmId:[%d] speechLen:[%d] ", requestHttpJson.getId(), speech.length()));
+		
+        // 语音数据中有截断符，使用 byte[] 存储
+		byte[] speech = jniShmService.readSpeechRecordByteArrShm(requestHttpJson.getId());
+		log.info(String.format(" success to read speech from shmId:[%d] speechLen:[%d] ", requestHttpJson.getId(), speech.length));
 		
 		// 调用谷歌 asr 接口完成语音转文本
 		String text = "";
 		// Instantiates a client
 		try (SpeechClient speechClient = SpeechClient.create()) {
             // 组成音频数据
-			ByteString audioBytes = ByteString.copyFrom(speech.getBytes());
+			ByteString audioBytes = ByteString.copyFrom(speech);
 
 			log.info(String.format("audioBytes size is: %d\n", audioBytes.size()));
 
