@@ -20,7 +20,7 @@ public class JniShmService {
 	
 	
 	/**
-	 * 加载动态库
+	 * 加载动态库，虚拟机的生命周期类JniShmService只被加载一次，static代码块仅在类被加载的时候执行一次
 	 */
 	static {
 		System.loadLibrary("JniShm");
