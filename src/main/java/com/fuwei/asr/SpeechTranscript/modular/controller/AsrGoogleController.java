@@ -74,8 +74,11 @@ public class AsrGoogleController extends BaseController {
 			log.info(String.format("audioBytes size is: %d\n", audioBytes.size()));
 
 			// Builds the sync recognize request
+//			RecognitionConfig config = RecognitionConfig.newBuilder().setEncoding(AudioEncoding.LINEAR16)
+//					.setSampleRateHertz(8000).setLanguageCode("en-US").build();
+			
 			RecognitionConfig config = RecognitionConfig.newBuilder().setEncoding(AudioEncoding.LINEAR16)
-					.setSampleRateHertz(8000).setLanguageCode("en-US").build();
+					.setSampleRateHertz(8000).setLanguageCode("id-ID").build();			
 
 			RecognitionAudio audio = RecognitionAudio.newBuilder().setContent(audioBytes).build();
 
