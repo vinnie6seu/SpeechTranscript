@@ -105,7 +105,7 @@ public class AsrGoogleController extends BaseController {
 			
 			long endTime = System.nanoTime();
 			
-			log.info("speech size:" + audioBytes.size() + " consume time:" + (endTime - startTime) + "ns");
+			log.info("speech size:" + audioBytes.size() + "text:["+ text + "]" + " consume time:" + (endTime - startTime) + "ns");
 			
 		} catch (IOException e) {
 			log.error(ERROR.toString());
