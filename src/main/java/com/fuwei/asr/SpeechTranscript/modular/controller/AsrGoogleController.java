@@ -83,29 +83,31 @@ public class AsrGoogleController extends BaseController {
 			RecognitionAudio audio = RecognitionAudio.newBuilder().setContent(audioBytes).build();
 
 			log.info("success to builds the sync recognize request");
-
-			// Performs speech recognition on the audio file
-			RecognizeResponse response = speechClient.recognize(config, audio);
-			List<SpeechRecognitionResult> results = response.getResultsList();
-
-			log.info("success to performs speech recognition on the audio file");
 			
 			long startTime = System.nanoTime();
 
-			for (SpeechRecognitionResult result : results) {
-				// There can be several alternative transcripts for a given chunk of speech.
-				// Just use the
-				// first (most likely) one here.
-				SpeechRecognitionAlternative alternative = result.getAlternativesList().get(0);
-				
-//				log.info("Transcription: %s%n", alternative.getTranscript());
-
-				text += alternative.getTranscript();
-			}
+//			// Performs speech recognition on the audio file
+//			RecognizeResponse response = speechClient.recognize(config, audio);
+//			List<SpeechRecognitionResult> results = response.getResultsList();
+//
+//			log.info("success to performs speech recognition on the audio file");
+//			
+//			for (SpeechRecognitionResult result : results) {
+//				// There can be several alternative transcripts for a given chunk of speech.
+//				// Just use the
+//				// first (most likely) one here.
+//				SpeechRecognitionAlternative alternative = result.getAlternativesList().get(0);
+//				
+////				log.info("Transcription: %s%n", alternative.getTranscript());
+//
+//				text += alternative.getTranscript();
+//			}
 			
 			long endTime = System.nanoTime();
 			
-			log.info("speech size:" + audioBytes.size() + "text:["+ text + "]" + " consume time:" + (endTime - startTime) + "ns");
+			text = requestHttpJson.getId() + " speech size:" + audioBytes.size();
+			
+			log.info("speech size:" + audioBytes.size() + " text:["+ text + "]" + " consume time:" + (endTime - startTime) + "ns");
 			
 		} catch (IOException e) {
 			log.error(ERROR.toString());
