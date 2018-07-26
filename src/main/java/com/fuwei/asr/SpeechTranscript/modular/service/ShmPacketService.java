@@ -52,7 +52,7 @@ public class ShmPacketService {
 		
 		// 2.创建请求音频的配置
 		RecognitionConfig recConfig = RecognitionConfig.newBuilder().setEncoding(AudioEncoding.LINEAR16)
-				.setLanguageCode("en-US").setSampleRateHertz(16000).setModel("default").build();
+				.setLanguageCode("en-US").setSampleRateHertz(8000).setModel("default").build();
 		// 配置 setInterimResults 决定了在发送语音流的过程中能收到转义结果
 		StreamingRecognitionConfig config = StreamingRecognitionConfig.newBuilder().setConfig(recConfig).setInterimResults(true).build();
 
