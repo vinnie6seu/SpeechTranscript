@@ -53,7 +53,7 @@ public class GlobalExceptionHandler implements Ordered {
 			ObjectError error = errors.get(0);
 			String msg = error.getDefaultMessage();
 			
-			resultVo = ResultVoUtil.error(new GlobalException(CodeMsgEnum.LOGIN_PARA_ERROR, msg));
+//			resultVo = ResultVoUtil.error(new GlobalException(CodeMsgEnum.LOGIN_PARA_ERROR, msg));
 		} else if(e instanceof MethodArgumentNotValidException) {
 			// JSR303与@RequestBody一起使用参数校验会抛出该异常
 			MethodArgumentNotValidException ex = (MethodArgumentNotValidException) e;
@@ -61,7 +61,7 @@ public class GlobalExceptionHandler implements Ordered {
 			ObjectError error = errors.get(0);
 			String msg = error.getDefaultMessage();			
 			
-			resultVo = ResultVoUtil.error(new GlobalException(CodeMsgEnum.LOGIN_PARA_ERROR, msg));
+//			resultVo = ResultVoUtil.error(new GlobalException(CodeMsgEnum.LOGIN_PARA_ERROR, msg));
 		} /* else if (e instanceof AuthenticationException) {
 			// 用户未登录
 			resultVo = ResultVoUtil.error(new GlobalException(CodeMsgEnum.SHIRO_NO_AUTH));
@@ -87,6 +87,7 @@ public class GlobalExceptionHandler implements Ordered {
 		
 //		// 异步保存异常日志
 //		logPersist(resultVo, e);			
+		
 		
 		return resultVo;		
 	}

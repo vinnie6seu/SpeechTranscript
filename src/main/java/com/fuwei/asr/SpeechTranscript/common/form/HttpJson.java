@@ -1,12 +1,15 @@
 package com.fuwei.asr.SpeechTranscript.common.form;
 
 public class HttpJson {
-	Integer id;                   
-    Integer speechOffset;        
-    Integer speechLen;            
-    Integer asrFlag;             
-    String fileName;
-    
+	Integer id;
+	Integer speechOffset;
+	Integer speechLen;
+	Integer asrFlag;
+	String fileName;
+	Integer asrSpeechPackStatus;
+	Integer curSendPacketNum;
+	Integer totalSendPacketNum;
+	
 	public Integer getId() {
 		return id;
 	}
@@ -37,10 +40,29 @@ public class HttpJson {
 	public void setFileName(String fileName) {
 		this.fileName = fileName;
 	}
+	public Integer getAsrSpeechPackStatus() {
+		return asrSpeechPackStatus;
+	}
+	public void setAsrSpeechPackStatus(Integer asrSpeechPackStatus) {
+		this.asrSpeechPackStatus = asrSpeechPackStatus;
+	}
+	public Integer getCurSendPacketNum() {
+		return curSendPacketNum;
+	}
+	public void setCurSendPacketNum(Integer curSendPacketNum) {
+		this.curSendPacketNum = curSendPacketNum;
+	}
+	public Integer getTotalSendPacketNum() {
+		return totalSendPacketNum;
+	}
+	public void setTotalSendPacketNum(Integer totalSendPacketNum) {
+		this.totalSendPacketNum = totalSendPacketNum;
+	}
 	
 	@Override
 	public String toString() {
 		return "HttpJson [id=" + id + ", speechOffset=" + speechOffset + ", speechLen=" + speechLen + ", asrFlag="
-				+ asrFlag + ", fileName=" + fileName + "]";
-	}     
+				+ asrFlag + ", fileName=" + fileName + ", asrSpeechPackStatus=" + asrSpeechPackStatus
+				+ ", curSendPacketNum=" + curSendPacketNum + ", totalSendPacketNum=" + totalSendPacketNum + "]";
+	}    	
 }

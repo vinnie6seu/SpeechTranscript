@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,10 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.fastjson.JSONObject;
 import com.fuwei.asr.SpeechTranscript.common.controller.BaseController;
+import com.fuwei.asr.SpeechTranscript.common.exception.GlobalException;
 import com.fuwei.asr.SpeechTranscript.common.form.HttpJson;
 import com.fuwei.asr.SpeechTranscript.common.form.User;
 import com.fuwei.asr.SpeechTranscript.constant.CodeMsgEnum;
+import com.fuwei.asr.SpeechTranscript.constant.SpeechPacketStatusEnum;
+import com.fuwei.asr.SpeechTranscript.modular.entity.AsrShmRequest;
 import com.fuwei.asr.SpeechTranscript.modular.service.JniShmService;
+import com.fuwei.asr.SpeechTranscript.modular.service.ShmPacketService;
 import com.fuwei.asr.SpeechTranscript.util.ResultVoUtil;
 //Imports the Google Cloud client library
 import com.google.cloud.speech.v1p1beta1.RecognitionAudio;
@@ -30,6 +35,9 @@ import com.google.cloud.speech.v1p1beta1.RecognizeResponse;
 import com.google.cloud.speech.v1p1beta1.SpeechClient;
 import com.google.cloud.speech.v1p1beta1.SpeechRecognitionAlternative;
 import com.google.cloud.speech.v1p1beta1.SpeechRecognitionResult;
+import com.google.cloud.speech.v1p1beta1.StreamingRecognitionResult;
+import com.google.cloud.speech.v1p1beta1.StreamingRecognizeRequest;
+import com.google.cloud.speech.v1p1beta1.StreamingRecognizeResponse;
 import com.google.protobuf.ByteString;
 
 /**
@@ -46,6 +54,9 @@ public class AsrGoogleController extends BaseController {
 	
 	@Autowired
 	private JniShmService jniShmService;
+
+	@Autowired
+	private ShmPacketService shmPacketService;	
 	
 	@PostMapping("/speechToText")
 	public Object speechToText(@RequestBody HttpJson requestHttpJson) {
@@ -86,22 +97,22 @@ public class AsrGoogleController extends BaseController {
 			
 			long startTime = System.nanoTime();
 
-//			// Performs speech recognition on the audio file
-//			RecognizeResponse response = speechClient.recognize(config, audio);
-//			List<SpeechRecognitionResult> results = response.getResultsList();
-//
-//			log.info("success to performs speech recognition on the audio file");
-//			
-//			for (SpeechRecognitionResult result : results) {
-//				// There can be several alternative transcripts for a given chunk of speech.
-//				// Just use the
-//				// first (most likely) one here.
-//				SpeechRecognitionAlternative alternative = result.getAlternativesList().get(0);
-//				
-////				log.info("Transcription: %s%n", alternative.getTranscript());
-//
-//				text += alternative.getTranscript();
-//			}
+			// Performs speech recognition on the audio file
+			RecognizeResponse response = speechClient.recognize(config, audio);
+			List<SpeechRecognitionResult> results = response.getResultsList();
+
+			log.info("success to performs speech recognition on the audio file");
+			
+			for (SpeechRecognitionResult result : results) {
+				// There can be several alternative transcripts for a given chunk of speech.
+				// Just use the
+				// first (most likely) one here.
+				SpeechRecognitionAlternative alternative = result.getAlternativesList().get(0);
+				
+//				log.info("Transcription: %s%n", alternative.getTranscript());
+
+				text += alternative.getTranscript();
+			}
 			
 			long endTime = System.nanoTime();
 			
@@ -124,6 +135,122 @@ public class AsrGoogleController extends BaseController {
 		responseHttpJson.setId(requestHttpJson.getId());
 		
 		return ResultVoUtil.success(CodeMsgEnum.SERVER_SUCCESS, JSONObject.toJSONString(responseHttpJson));
+	}	
+	
+	@PostMapping("/speechToTextPacket")
+	public Object speechToTextPacket(@RequestBody HttpJson requestHttpJson) throws IOException, InterruptedException, ExecutionException {
+
+		log.info(String.format("request json is :[%s]", requestHttpJson.toString()));
+
+		if (SpeechPacketStatusEnum.MSP_AUDIO_INIT.value() == requestHttpJson.getAsrSpeechPackStatus()) {
+
+			// 1.init，新建键值对<id, [speechClient, 两个观察者, 已收到包数量, 发送完成标识, 总发送包数量]>，发送配置
+			shmPacketService.requestIdCreate(requestHttpJson.getId());
+
+		} else if (SpeechPacketStatusEnum.MSP_AUDIO_CONTINUE.value() == requestHttpJson.getAsrSpeechPackStatus()) {
+
+			/**
+			 * 2.continue
+			 * 2.1  没有找到相应 id 的缓存信息返回报错
+			 * 2.2  收取非阻塞队列中的（如果有数据包）数据调用Request.onNext
+			 * 2.3 按照is_complete_receive，调用onComplete
+			 */
+			AsrShmRequest asrShmRequest = shmPacketService.requestIdGet(requestHttpJson.getId());
+			if (asrShmRequest != null) {
+
+				Integer id = requestHttpJson.getId();
+				boolean is_complete_send = (SpeechPacketStatusEnum.MSP_AUDIO_LAST.value() == requestHttpJson.getAsrSpeechPackStatus());
+				int total_send_packet_num = requestHttpJson.getTotalSendPacketNum();
+				asrShmRequest.set_is_send_complete(is_complete_send);
+				asrShmRequest.set_total_send_packet_num(total_send_packet_num);				
+				
+				Integer batch_num = 0;
+				Boolean is_complete_receive = false;
+				// 得到语音数据、读到的语音包数、是否全部读完了[发送完成标志comlete && 已收到包数量 == 总发送包数量]
+				byte[] speechData = shmPacketService.speechPacketReceive(id, is_complete_send, total_send_packet_num, batch_num, is_complete_receive);
+
+				if (batch_num != 0) {
+					
+					log.info(String.format("id:[%d] send speech packet len:[%d]", requestHttpJson.getId(), speechData.length));
+					
+					asrShmRequest.get_requestObserver().onNext(StreamingRecognizeRequest.newBuilder().setAudioContent(ByteString.copyFrom(speechData)).build());
+				}
+
+				if (is_complete_receive == true) {
+					
+					log.info(String.format("id:[%d] call onCompleted", requestHttpJson.getId()));
+					
+					asrShmRequest.get_requestObserver().onCompleted();
+					
+					// 收取最终结果
+					StreamingRecognizeResponse responses = asrShmRequest.get_responseObserver().future().get();
+					StreamingRecognitionResult result = responses.getResultsList().get(0);
+					SpeechRecognitionAlternative alternative = result.getAlternativesList().get(0);
+					log.info(String.format("id:[%d] Transcript: %s\n", requestHttpJson.getId(), alternative.getTranscript()));					
+				}
+			} else {
+				
+				// 删除键值对		
+				shmPacketService.requestIdDelete(requestHttpJson.getId());						
+				
+				log.error(String.format("not create query id:[%d] info", requestHttpJson.getId()));
+				
+				throw new GlobalException(CodeMsgEnum.NO_CREATE_QUERY_ID, requestHttpJson.getId());
+			}
+
+		} else if (SpeechPacketStatusEnum.MSP_AUDIO_LAST.value() == requestHttpJson.getAsrSpeechPackStatus()) {
+			// 3.
+			AsrShmRequest asrShmRequest = shmPacketService.requestIdGet(requestHttpJson.getId());
+			if (asrShmRequest != null) {
+
+				Integer id = requestHttpJson.getId();
+				boolean is_complete_send = (SpeechPacketStatusEnum.MSP_AUDIO_LAST.value() == requestHttpJson.getAsrSpeechPackStatus());
+				int total_send_packet_num = requestHttpJson.getTotalSendPacketNum();
+				asrShmRequest.set_is_send_complete(is_complete_send);
+				asrShmRequest.set_total_send_packet_num(total_send_packet_num);
+				
+				Integer batch_num = 0;
+				Boolean is_complete_receive = false;
+				// 得到语音数据、读到的语音包数、是否全部读完了[发送完成标志comlete && 已收到包数量 == 总发送包数量]
+				byte[] speechData = shmPacketService.speechPacketReceive(id, is_complete_send, total_send_packet_num, batch_num, is_complete_receive);
+
+				if (batch_num != 0) {
+					
+					log.info(String.format("id:[%d] send speech packet len:[%d]", requestHttpJson.getId(), speechData.length));
+					
+					asrShmRequest.get_requestObserver().onNext(StreamingRecognizeRequest.newBuilder().setAudioContent(ByteString.copyFrom(speechData)).build());
+				}
+
+				if (is_complete_receive == true) {
+					
+					log.info(String.format("id:[%d] call onCompleted", requestHttpJson.getId()));
+					
+					asrShmRequest.get_requestObserver().onCompleted();
+					
+					// 收取最终结果
+					StreamingRecognizeResponse responses = asrShmRequest.get_responseObserver().future().get();
+					StreamingRecognitionResult result = responses.getResultsList().get(0);
+					SpeechRecognitionAlternative alternative = result.getAlternativesList().get(0);
+					log.info(String.format("id:[%d] Transcript: %s\n", requestHttpJson.getId(), alternative.getTranscript()));							
+				}
+			} else {
+				
+				// 删除键值对		
+				shmPacketService.requestIdDelete(requestHttpJson.getId());						
+				
+				log.error(String.format("not create query id:[%d] info", requestHttpJson.getId()));
+				
+				throw new GlobalException(CodeMsgEnum.NO_CREATE_QUERY_ID, requestHttpJson.getId());
+			}
+
+		}
+
+		// 告知客户端文本数据写入位置
+		HttpJson responseHttpJson = new HttpJson();
+		responseHttpJson.setId(requestHttpJson.getId());
+
+		return ResultVoUtil.success(CodeMsgEnum.SERVER_SUCCESS, JSONObject.toJSONString(responseHttpJson));
+
 	}	
 
 	/**

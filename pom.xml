@@ -25,6 +25,7 @@
 		
 		<google-cloud-speech.version>0.49.0-alpha</google-cloud-speech.version>
 		<fastjson.version>1.2.47</fastjson.version>
+		<json-lib.version>2.1</json-lib.version>
 		<ini4j.version>0.5.4</ini4j.version>
 	</properties>
 
@@ -54,6 +55,14 @@
 		    <artifactId>fastjson</artifactId>
 		    <version>${fastjson.version}</version>
 		</dependency>
+		
+		<!-- json 序列化 -->
+		<dependency>    
+		    <groupId>net.sf.json-lib</groupId>   
+		    <artifactId>json-lib</artifactId>    
+		    <version>${json-lib.version}</version>    
+		    <classifier>jdk15</classifier>
+		</dependency>		
 		
 		<!-- 操作 ini 格式的配置文件 -->
 		<dependency>

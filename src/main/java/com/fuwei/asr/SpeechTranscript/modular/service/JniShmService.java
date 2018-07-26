@@ -11,6 +11,9 @@ import org.ini4j.Profile.Section;
 //import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.fuwei.asr.SpeechTranscript.constant.MrcpClientTypeEnum;
+import com.fuwei.asr.SpeechTranscript.modular.entity.AsrShmResponse;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -29,7 +32,7 @@ public class JniShmService {
 	/**
 	 * 加载共享内存
 	 */
-	private native void JNI_shmInit(int shmSpeechToTextKey, int shmSpeechToTextNum); 
+	private native void JNI_shmInit(int shmSpeechToTextKey, int shmSpeechToTextNum, int mrcpClientType); 
 	
 	/**
 	 * 动态库中读取共享内存语音数据，废弃
@@ -53,6 +56,12 @@ public class JniShmService {
 	
 	//////////////////////////////////////////////////////////////////////////////////
 	
+	private native byte[] JNI_shmSpeechPacketReceive(int id, boolean is_complete_send, int total_send_packet_num, Integer batch_num, Boolean is_complete_receive);
+	
+	private native void JNI_shmTextPacketSend(int id, AsrShmResponse asrResponse);
+	
+	//////////////////////////////////////////////////////////////////////////////////
+	
 	public void shmInit() {
 		// 找到 SpeechProcess.cfg 全路径
 		String configFullPath = "";
@@ -70,6 +79,7 @@ public class JniShmService {
 		// 从配置文件 SpeechProcess.cfg 中读到 shmSpeechToTextKey、shmSpeechToTextNum
 		int shmSpeechToTextKey;
 		int shmSpeechToTextNum;
+		String speechToTextClientType;
 		
         Config cfg = new Config();  
         // 设置Section允许出现重复  
@@ -83,9 +93,10 @@ public class JniShmService {
             Section section = ini.get("SHM");  
             String shmSpeechToTextKeyStr = section.get("SPEECH_TO_TEXT_KEY");  
             String shmSpeechToTextNumStr = section.get("SPEECH_TO_TEXT_NUM"); 
+            speechToTextClientType = section.get("SPEECH_TO_TEXT_CLIENT_TYPE"); 
             
-            if (shmSpeechToTextKeyStr.isEmpty() || shmSpeechToTextNumStr.isEmpty()) {
-            	log.error("in SpeechProcess.cfg can not find [SHM SPEECH_TO_TEXT_KEY] or [SHM SPEECH_TO_TEXT_NUM]");
+            if (shmSpeechToTextKeyStr.isEmpty() || shmSpeechToTextNumStr.isEmpty() || speechToTextClientType.isEmpty()) {
+            	log.error("in SpeechProcess.cfg can not find [SHM SPEECH_TO_TEXT_KEY] or [SHM SPEECH_TO_TEXT_NUM] or [SHM SPEECH_TO_TEXT_CLIENT_TYPE]");
             	return ;
             }
             
@@ -99,7 +110,12 @@ public class JniShmService {
 		// 通过 JNI 调用 c 代码装载共享内存
 		log.info(String.format("start to load shm shmSpeechToTextKey:[%d] shmSpeechToTextNum:[%d]", shmSpeechToTextKey, shmSpeechToTextNum));
 		
-		JNI_shmInit(shmSpeechToTextKey, shmSpeechToTextNum); 
+		if (MrcpClientTypeEnum.CLIENT_TYPE_ASR.toString().equals(speechToTextClientType)) {
+			JNI_shmInit(shmSpeechToTextKey, shmSpeechToTextNum, MrcpClientTypeEnum.CLIENT_TYPE_ASR.value()); 
+		} else if (MrcpClientTypeEnum.CLIENT_TYPE_ASR_PACKET.toString().equals(speechToTextClientType)) {
+			JNI_shmInit(shmSpeechToTextKey, shmSpeechToTextNum, MrcpClientTypeEnum.CLIENT_TYPE_ASR_PACKET.value()); 
+		}
+		
 	}
 
 	public String readSpeechRecordShm(Integer id) {
@@ -122,6 +138,20 @@ public class JniShmService {
 		
 		JNI_writeTextRecordShm(id, text);
 	}
+	
+	//////////////////////////////////////////////////////////////////////////////////	
+	
+	public byte[] shmSpeechPacketReceive(Integer id, boolean is_complete_send, int total_send_packet_num, Integer batch_num, Boolean is_complete_receive) {
+		log.info(String.format("start to receive speech packet in shm id:[%d]", id));
+		return JNI_shmSpeechPacketReceive(id, is_complete_send, total_send_packet_num, batch_num, is_complete_receive);
+	}
+	
+	public void shmTextPacketSend(Integer id, AsrShmResponse asrResponse) {
+		log.info(String.format("start to send text packet in shm id:[%d]", id));
+		JNI_shmTextPacketSend(id, asrResponse);
+	}
+	
+	//////////////////////////////////////////////////////////////////////////////////	
 
 	public void shmTerm() {
 		log.info("start to delete shm");
