@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.fuwei.asr.SpeechTranscript.common.bean.SpringContextHolder;
@@ -38,6 +39,7 @@ public class ShmPacketService {
     }	
 	
 	/**
+	 * @CachePut和@Cacheable这两个标签可以结合使用，当需要根据请求改变值的时候，利用@CachePut将值改变并写入到缓存中，而@Cacheable标签除了第一次之外，一直是取的缓存的值。
 	 * 
 	 * @param id
 	 * @return
@@ -82,7 +84,7 @@ public class ShmPacketService {
 	 * @param id
 	 * @return
 	 */
-	@CachePut(value = "asrCacheMap", key = "#id")
+	@Cacheable(value = "asrCacheMap", key = "#id")
 	public AsrShmRequest requestIdGet(Integer id) {
 		return null;
 	}	
