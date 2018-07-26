@@ -174,6 +174,8 @@ public class AsrGoogleController extends BaseController {
 					log.info(String.format("id:[%d] send speech packet len:[%d]", requestHttpJson.getId(), speechData.length));
 					
 					asrShmRequest.get_requestObserver().onNext(StreamingRecognizeRequest.newBuilder().setAudioContent(ByteString.copyFrom(speechData)).build());
+					
+					log.info(String.format("success to call onNext id:[%d] send speech packet len:[%d]", requestHttpJson.getId(), speechData.length));
 				}
 
 				if (is_complete_receive == true) {
