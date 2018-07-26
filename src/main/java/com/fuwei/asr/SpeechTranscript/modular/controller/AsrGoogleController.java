@@ -158,11 +158,13 @@ public class AsrGoogleController extends BaseController {
 			AsrShmRequest asrShmRequest = shmPacketService.requestIdGet(requestHttpJson.getId());
 			if (asrShmRequest != null) {
 
+				// 查看记录标识
 				Integer id = requestHttpJson.getId();
-				boolean is_complete_send = (SpeechPacketStatusEnum.MSP_AUDIO_LAST.value() == requestHttpJson.getAsrSpeechPackStatus());
-				int total_send_packet_num = requestHttpJson.getTotalSendPacketNum();
-				asrShmRequest.set_is_send_complete(is_complete_send);
-				asrShmRequest.set_total_send_packet_num(total_send_packet_num);				
+				boolean is_complete_send = asrShmRequest.is_is_send_complete();
+				int total_send_packet_num = asrShmRequest.get_total_send_packet_num();
+								
+//				asrShmRequest.set_is_send_complete(is_complete_send);
+//				asrShmRequest.set_total_send_packet_num(total_send_packet_num);				
 				
 				Integer batch_num = 0;
 				Boolean is_complete_receive = false;
@@ -208,8 +210,10 @@ public class AsrGoogleController extends BaseController {
 				Integer id = requestHttpJson.getId();
 				boolean is_complete_send = (SpeechPacketStatusEnum.MSP_AUDIO_LAST.value() == requestHttpJson.getAsrSpeechPackStatus());
 				int total_send_packet_num = requestHttpJson.getTotalSendPacketNum();
+				// 更新记录，得到已经发送完毕，总的发送包数量
 				asrShmRequest.set_is_send_complete(is_complete_send);
 				asrShmRequest.set_total_send_packet_num(total_send_packet_num);
+				shmPacketService.requestIdUpdate(id, asrShmRequest);
 				
 				Integer batch_num = 0;
 				Boolean is_complete_receive = false;

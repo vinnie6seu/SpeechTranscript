@@ -92,6 +92,18 @@ public class ShmPacketService {
 	/**
 	 * 
 	 * @param id
+	 * @return
+	 * @throws IOException
+	 */
+	@CachePut(value = "asrCacheMap", key = "#id")
+	public AsrShmRequest requestIdUpdate(Integer id, AsrShmRequest asrShmRequest) throws IOException {
+
+		return asrShmRequest;
+	}
+	
+	/**
+	 * 
+	 * @param id
 	 * @param is_complete_send
 	 * @param total_send_packet_num
 	 * @param batch_num
