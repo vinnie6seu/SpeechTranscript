@@ -23,6 +23,8 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 
+import javax.servlet.http.HttpSession;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +72,7 @@ public class QuickstartSample {
 		
 		StreamingRecognizeResponse responses = shmPacketService.requestIdGet(getId()).get_responseObserver().future().get();
 
-		while (responses.getResultsList().isEmpty()) {
+		while (responses == null || responses.getResultsList().isEmpty()) {
 			try {
 				Thread.sleep(200);
 			} catch (Exception e) {
@@ -101,7 +103,7 @@ public class QuickstartSample {
 	 * @param fileName
 	 *            the path to a PCM audio file to transcribe.
 	 */
-	public void streamingRecognizeFile(SpeechClient speech, byte[] data, AUDIO_FLAG audioFlg)
+	public void streamingRecognizeFile(SpeechClient speech, byte[] data, AUDIO_FLAG audioFlg, HttpSession httpSession)
 			throws Exception, IOException {
 
 		try {
@@ -164,7 +166,7 @@ public class QuickstartSample {
 	 * Demonstrates using the Speech API to transcribe an audio file.
 	 */
 	@GetMapping("/handle")
-	public Object handle() throws Exception {
+	public Object handle(HttpSession httpSession) throws Exception {
 
 		// 初始化客户端
 		try (SpeechClient speechClient = SpeechClient.create()) {
@@ -185,7 +187,7 @@ public class QuickstartSample {
 			long startTime = System.currentTimeMillis();// 记录开始时间
 
 			// 初始化
-			streamingRecognizeFile(speechClient, null, AUDIO_FLAG.MSP_AUDIO_SAMPLE_INIT);
+			streamingRecognizeFile(speechClient, null, AUDIO_FLAG.MSP_AUDIO_SAMPLE_INIT, httpSession);
 
 			int FRAME_LEN = 3200;
 			int len = 0;
@@ -194,7 +196,7 @@ public class QuickstartSample {
 
 					log.info(String.format("speech from[%d] to[%d]\n", len * FRAME_LEN, data.length));
 					streamingRecognizeFile(speechClient, Arrays.copyOfRange(data, len * FRAME_LEN, data.length),
-							AUDIO_FLAG.MSP_AUDIO_SAMPLE_CONTINUE);
+							AUDIO_FLAG.MSP_AUDIO_SAMPLE_CONTINUE, httpSession);
 
 				} else {
 
@@ -202,7 +204,7 @@ public class QuickstartSample {
 					// 持续发送包数据
 					streamingRecognizeFile(speechClient,
 							Arrays.copyOfRange(data, len * FRAME_LEN, (len + 1) * FRAME_LEN),
-							AUDIO_FLAG.MSP_AUDIO_SAMPLE_CONTINUE);
+							AUDIO_FLAG.MSP_AUDIO_SAMPLE_CONTINUE, httpSession);
 
 				}
 				len++;
@@ -213,7 +215,7 @@ public class QuickstartSample {
 			}
 
 			// 完成
-			streamingRecognizeFile(speechClient, null, AUDIO_FLAG.MSP_AUDIO_SAMPLE_LAST);
+			streamingRecognizeFile(speechClient, null, AUDIO_FLAG.MSP_AUDIO_SAMPLE_LAST, httpSession);
 
 			long endTime = System.currentTimeMillis();// 记录结束时间
 

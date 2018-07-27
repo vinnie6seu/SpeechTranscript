@@ -49,8 +49,13 @@ public class ShmPacketService {
 	public AsrShmRequest requestIdCreate(Integer id) throws IOException {
 		log.info(String.format("step into new create request id:[%d]", id));
 		
+		// 0.保存相应请求 id 的处理内容
+		AsrShmRequest asrShmRequest = new AsrShmRequest();
+		
 		// 1.创建客户端
 		SpeechClient speechClient = SpeechClient.create();
+		
+		asrShmRequest.set_speechClient(speechClient);
 		
 		// 2.创建请求音频的配置
 		RecognitionConfig recConfig = RecognitionConfig.newBuilder().setEncoding(AudioEncoding.LINEAR16)
@@ -62,19 +67,17 @@ public class ShmPacketService {
 		ResponseApiStreamingObserver<StreamingRecognizeResponse> responseObserver = new ResponseApiStreamingObserver<>();
 		// 在谷歌回调传回转义结果的时候也让其知道该写入的位置 id
 		responseObserver.setId(id);
+		
+		asrShmRequest.set_responseObserver(responseObserver);
 
 		// 4.创建 requestObserver
 		BidiStreamingCallable<StreamingRecognizeRequest, StreamingRecognizeResponse> callable = speechClient.streamingRecognizeCallable();
-		ApiStreamObserver<StreamingRecognizeRequest> requestObserver = callable.bidiStreamingCall(responseObserver);
-
-		// 5.发送配置请求
-		requestObserver.onNext(StreamingRecognizeRequest.newBuilder().setStreamingConfig(config).build());		
+		ApiStreamObserver<StreamingRecognizeRequest> requestObserver = callable.bidiStreamingCall(asrShmRequest.get_responseObserver());
 		
-		// 6.保存相应请求 id 的处理内容
-		AsrShmRequest asrShmRequest = new AsrShmRequest();
-		asrShmRequest.set_responseObserver(responseObserver);
 		asrShmRequest.set_requestObserver(requestObserver);
-		asrShmRequest.set_speechClient(speechClient);
+		
+		// 5.发送配置请求
+		asrShmRequest.get_requestObserver().onNext(StreamingRecognizeRequest.newBuilder().setStreamingConfig(config).build());		
 		
 		return asrShmRequest;
 	}
