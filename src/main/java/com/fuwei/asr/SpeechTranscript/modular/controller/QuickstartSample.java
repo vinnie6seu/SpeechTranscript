@@ -70,6 +70,16 @@ public class QuickstartSample {
 		
 		StreamingRecognizeResponse responses = shmPacketService.requestIdGet(getId()).get_responseObserver().future().get();
 
+		while (responses.getResultsList().isEmpty()) {
+			try {
+				Thread.sleep(200);
+			} catch (Exception e) {
+				
+			}	
+			
+			log.info("result is empty");
+		}
+		
 		// for (StreamingRecognizeResponse response : responses) {
 		// For streaming recognize, the results list has one is_final result (if
 		// available) followed
