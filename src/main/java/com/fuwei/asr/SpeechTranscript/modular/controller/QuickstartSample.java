@@ -52,7 +52,6 @@ import com.google.cloud.speech.v1p1beta1.StreamingRecognizeResponse;
 import com.google.protobuf.ByteString;
 
 @RestController
-@Scope("prototype")
 @RequestMapping("/QuickstartSample")
 public class QuickstartSample {
 	private static final Logger log = LoggerFactory.getLogger(QuickstartSample.class);
@@ -68,14 +67,6 @@ public class QuickstartSample {
 		return 999;
 	}
 	
-	private ApiStreamObserver<StreamingRecognizeRequest> requestObserver = null;
-
-	private ResponseApiStreamingObserver<StreamingRecognizeResponse> responseObserver = null;
-	
-	static {
-		
-	}
-
 	public void getResultText() throws InterruptedException, ExecutionException {
 
 		ShmPacketService shmPacketService = ShmPacketService.me();
@@ -84,7 +75,7 @@ public class QuickstartSample {
 
 		while (responses == null || responses.getResultsList().isEmpty()) {
 			try {
-				Thread.sleep(200);
+				Thread.sleep(2000);
 			} catch (Exception e) {
 				
 			}	
@@ -121,65 +112,27 @@ public class QuickstartSample {
 			if (AUDIO_FLAG.MSP_AUDIO_SAMPLE_INIT == audioFlg) {
 				log.info(String.format("current status : %s\n", AUDIO_FLAG.MSP_AUDIO_SAMPLE_INIT.toString()));
 
-				// Configure request with local raw PCM audio
-				RecognitionConfig recConfig = RecognitionConfig.newBuilder().setEncoding(AudioEncoding.LINEAR16)
-						.setLanguageCode("en-US").setSampleRateHertz(16000).setModel("default").build();
-
-				StreamingRecognitionConfig config = StreamingRecognitionConfig.newBuilder().setConfig(recConfig).setInterimResults(true).build();
-
-				responseObserver = new ResponseApiStreamingObserver<>();
-
-				BidiStreamingCallable<StreamingRecognizeRequest, StreamingRecognizeResponse> callable = speech
-						.streamingRecognizeCallable();
-				requestObserver = callable.bidiStreamingCall(responseObserver);
-
-				// The first request must **only** contain the audio configuration:
-				requestObserver.onNext(StreamingRecognizeRequest.newBuilder().setStreamingConfig(config).build());
-				
-				
-//				// 1.init，新建键值对<id, [speechClient, 两个观察者, 已收到包数量, 发送完成标识, 总发送包数量]>，发送配置
-//				AsrShmRequest asrShmRequest = shmPacketService.requestIdCreate(getId());
-//				
-//				
-//				
-//				
-//				RecognitionConfig recConfig = RecognitionConfig.newBuilder().setEncoding(AudioEncoding.LINEAR16)
-//						.setLanguageCode("en-US").setSampleRateHertz(8000).setModel("default").build();
-//				// 配置 setInterimResults 决定了在发送语音流的过程中能收到转义结果
-//				StreamingRecognitionConfig config = StreamingRecognitionConfig.newBuilder().setConfig(recConfig).setInterimResults(true).build();
-//				
-//				// 5.发送配置请求
-//				requestObserver = asrShmRequest.get_requestObserver();
-//				responseObserver = asrShmRequest.get_responseObserver();
-//
-//				requestObserver.onNext(StreamingRecognizeRequest.newBuilder().setStreamingConfig(config).build());		
-								
+				// 1.init，新建键值对<id, [speechClient, 两个观察者, 已收到包数量, 发送完成标识, 总发送包数量]>，发送配置
+				AsrShmRequest asrShmRequest = shmPacketService.requestIdCreate(getId());	
 				
 			} else if (AUDIO_FLAG.MSP_AUDIO_SAMPLE_CONTINUE == audioFlg) {
-				// Subsequent requests must **only** contain the audio data.
-//				requestObserver.onNext(StreamingRecognizeRequest.newBuilder().setAudioContent(ByteString.copyFrom(data)).build());
 
-//				AsrShmRequest asrShmRequest = shmPacketService.requestIdGet(getId());
-//				
-//				requestObserver = asrShmRequest.get_requestObserver();
-//				responseObserver = asrShmRequest.get_responseObserver();
+				AsrShmRequest asrShmRequest = shmPacketService.requestIdGet(getId());
 				
-				requestObserver.onNext(StreamingRecognizeRequest.newBuilder().setAudioContent(ByteString.copyFrom(data)).build());
+				// 2.
+				asrShmRequest.continueOnNext(data);
 				
 				log.info(String.format("current status : %s\n", AUDIO_FLAG.MSP_AUDIO_SAMPLE_CONTINUE.toString()));
-				// getResultText();
+
 			} else if (AUDIO_FLAG.MSP_AUDIO_SAMPLE_LAST == audioFlg) {
-				// Mark transmission as completed after sending the data.
-//				requestObserver.onCompleted();
-				
-//				AsrShmRequest asrShmRequest = shmPacketService.requestIdGet(getId());
-//				
-//				requestObserver = asrShmRequest.get_requestObserver();
-//				responseObserver = asrShmRequest.get_responseObserver();
-				
-				requestObserver.onCompleted();
+		
+				AsrShmRequest asrShmRequest = shmPacketService.requestIdGet(getId());
+		 
+				// 3.
+				asrShmRequest.completeOnNext();
 
 				log.info(String.format("current status : %s\n", AUDIO_FLAG.MSP_AUDIO_SAMPLE_LAST.toString()));
+				
 				getResultText();
 			}
 
