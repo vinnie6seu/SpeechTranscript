@@ -28,6 +28,7 @@ import javax.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,6 +52,7 @@ import com.google.cloud.speech.v1p1beta1.StreamingRecognizeResponse;
 import com.google.protobuf.ByteString;
 
 @RestController
+@Scope("prototype")
 @RequestMapping("/QuickstartSample")
 public class QuickstartSample {
 	private static final Logger log = LoggerFactory.getLogger(QuickstartSample.class);
@@ -64,6 +66,14 @@ public class QuickstartSample {
 	
 	public Integer getId() {
 		return 999;
+	}
+	
+	private ApiStreamObserver<StreamingRecognizeRequest> requestObserver = null;
+
+	private ResponseApiStreamingObserver<StreamingRecognizeResponse> responseObserver = null;
+	
+	static {
+		
 	}
 
 	public void getResultText() throws InterruptedException, ExecutionException {
@@ -128,14 +138,33 @@ public class QuickstartSample {
 				
 				
 				// 1.init，新建键值对<id, [speechClient, 两个观察者, 已收到包数量, 发送完成标识, 总发送包数量]>，发送配置
-				shmPacketService.requestIdCreate(getId());
+				AsrShmRequest asrShmRequest = shmPacketService.requestIdCreate(getId());
+				
+				
+				
+				
+				RecognitionConfig recConfig = RecognitionConfig.newBuilder().setEncoding(AudioEncoding.LINEAR16)
+						.setLanguageCode("en-US").setSampleRateHertz(8000).setModel("default").build();
+				// 配置 setInterimResults 决定了在发送语音流的过程中能收到转义结果
+				StreamingRecognitionConfig config = StreamingRecognitionConfig.newBuilder().setConfig(recConfig).setInterimResults(true).build();
+				
+				// 5.发送配置请求
+				requestObserver = asrShmRequest.get_requestObserver();
+				responseObserver = asrShmRequest.get_responseObserver();
+
+				requestObserver.onNext(StreamingRecognizeRequest.newBuilder().setStreamingConfig(config).build());		
+								
 				
 			} else if (AUDIO_FLAG.MSP_AUDIO_SAMPLE_CONTINUE == audioFlg) {
 				// Subsequent requests must **only** contain the audio data.
 //				requestObserver.onNext(StreamingRecognizeRequest.newBuilder().setAudioContent(ByteString.copyFrom(data)).build());
 
 				AsrShmRequest asrShmRequest = shmPacketService.requestIdGet(getId());
-				asrShmRequest.get_requestObserver().onNext(StreamingRecognizeRequest.newBuilder().setAudioContent(ByteString.copyFrom(data)).build());
+				
+				requestObserver = asrShmRequest.get_requestObserver();
+				responseObserver = asrShmRequest.get_responseObserver();
+				
+				requestObserver.onNext(StreamingRecognizeRequest.newBuilder().setAudioContent(ByteString.copyFrom(data)).build());
 				
 				log.info(String.format("current status : %s\n", AUDIO_FLAG.MSP_AUDIO_SAMPLE_CONTINUE.toString()));
 				// getResultText();
@@ -144,7 +173,11 @@ public class QuickstartSample {
 //				requestObserver.onCompleted();
 				
 				AsrShmRequest asrShmRequest = shmPacketService.requestIdGet(getId());
-				asrShmRequest.get_requestObserver().onCompleted();
+				
+				requestObserver = asrShmRequest.get_requestObserver();
+				responseObserver = asrShmRequest.get_responseObserver();
+				
+				requestObserver.onCompleted();
 
 				log.info(String.format("current status : %s\n", AUDIO_FLAG.MSP_AUDIO_SAMPLE_LAST.toString()));
 				getResultText();

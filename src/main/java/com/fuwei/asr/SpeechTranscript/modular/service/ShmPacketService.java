@@ -76,9 +76,9 @@ public class ShmPacketService {
 		
 		asrShmRequest.set_requestObserver(requestObserver);
 		
-		// 5.发送配置请求
-		asrShmRequest.get_requestObserver().onNext(StreamingRecognizeRequest.newBuilder().setStreamingConfig(config).build());		
-		
+//		// 5.发送配置请求
+//		asrShmRequest.get_requestObserver().onNext(StreamingRecognizeRequest.newBuilder().setStreamingConfig(config).build());		
+//		
 		return asrShmRequest;
 	}
 	
