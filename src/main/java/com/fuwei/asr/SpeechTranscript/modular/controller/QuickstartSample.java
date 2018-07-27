@@ -67,6 +67,8 @@ public class QuickstartSample {
 		return 999;
 	}
 	
+	private AsrShmRequest asrShmRequest = null;
+	
 	public void getResultText() throws InterruptedException, ExecutionException {
 
 		ShmPacketService shmPacketService = ShmPacketService.me();
@@ -113,11 +115,13 @@ public class QuickstartSample {
 				log.info(String.format("current status : %s\n", AUDIO_FLAG.MSP_AUDIO_SAMPLE_INIT.toString()));
 
 				// 1.init，新建键值对<id, [speechClient, 两个观察者, 已收到包数量, 发送完成标识, 总发送包数量]>，发送配置
-				AsrShmRequest asrShmRequest = shmPacketService.requestIdCreate(getId());	
+//				AsrShmRequest asrShmRequest = shmPacketService.requestIdCreate(getId());	
+				
+				asrShmRequest = shmPacketService.requestIdCreate(getId());	
 				
 			} else if (AUDIO_FLAG.MSP_AUDIO_SAMPLE_CONTINUE == audioFlg) {
 
-				AsrShmRequest asrShmRequest = shmPacketService.requestIdGet(getId());
+//				AsrShmRequest asrShmRequest = shmPacketService.requestIdGet(getId());
 				
 				// 2.
 				asrShmRequest.continueOnNext(data);
@@ -126,7 +130,7 @@ public class QuickstartSample {
 
 			} else if (AUDIO_FLAG.MSP_AUDIO_SAMPLE_LAST == audioFlg) {
 		
-				AsrShmRequest asrShmRequest = shmPacketService.requestIdGet(getId());
+//				AsrShmRequest asrShmRequest = shmPacketService.requestIdGet(getId());
 		 
 				// 3.
 				asrShmRequest.completeOnNext();
