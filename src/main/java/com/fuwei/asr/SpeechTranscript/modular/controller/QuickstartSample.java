@@ -81,7 +81,7 @@ public class QuickstartSample {
 		// Just use the
 		// first (most likely) one here.
 		SpeechRecognitionAlternative alternative = result.getAlternativesList().get(0);
-		log.info("Transcript : %s\n", alternative.getTranscript());
+		log.info(String.format("Transcript : %s\n", alternative.getTranscript()));
 		// }
 	}
 
@@ -97,7 +97,7 @@ public class QuickstartSample {
 		try {
 			// 初始化
 			if (AUDIO_FLAG.MSP_AUDIO_SAMPLE_INIT == audioFlg) {
-				log.info("current status : %s\n", AUDIO_FLAG.MSP_AUDIO_SAMPLE_INIT.toString());
+				log.info(String.format("current status : %s\n", AUDIO_FLAG.MSP_AUDIO_SAMPLE_INIT.toString()));
 
 //				// Configure request with local raw PCM audio
 //				RecognitionConfig recConfig = RecognitionConfig.newBuilder().setEncoding(AudioEncoding.LINEAR16)
@@ -125,7 +125,7 @@ public class QuickstartSample {
 				AsrShmRequest asrShmRequest = shmPacketService.requestIdGet(getId());
 				asrShmRequest.get_requestObserver().onNext(StreamingRecognizeRequest.newBuilder().setAudioContent(ByteString.copyFrom(data)).build());
 				
-				log.info("current status : %s\n", AUDIO_FLAG.MSP_AUDIO_SAMPLE_CONTINUE.toString());
+				log.info(String.format("current status : %s\n", AUDIO_FLAG.MSP_AUDIO_SAMPLE_CONTINUE.toString()));
 				// getResultText();
 			} else if (AUDIO_FLAG.MSP_AUDIO_SAMPLE_LAST == audioFlg) {
 				// Mark transmission as completed after sending the data.
@@ -134,7 +134,7 @@ public class QuickstartSample {
 				AsrShmRequest asrShmRequest = shmPacketService.requestIdGet(getId());
 				asrShmRequest.get_requestObserver().onCompleted();
 
-				log.info("current status : %s\n", AUDIO_FLAG.MSP_AUDIO_SAMPLE_LAST.toString());
+				log.info(String.format("current status : %s\n", AUDIO_FLAG.MSP_AUDIO_SAMPLE_LAST.toString()));
 				getResultText();
 			}
 
@@ -182,13 +182,13 @@ public class QuickstartSample {
 			while (len * FRAME_LEN <= data.length) {
 				if ((len + 1) * FRAME_LEN > data.length) {
 
-					log.info("speech from[%d] to[%d]\n", len * FRAME_LEN, data.length);
+					log.info(String.format("speech from[%d] to[%d]\n", len * FRAME_LEN, data.length));
 					streamingRecognizeFile(speechClient, Arrays.copyOfRange(data, len * FRAME_LEN, data.length),
 							AUDIO_FLAG.MSP_AUDIO_SAMPLE_CONTINUE);
 
 				} else {
 
-					log.info("speech from[%d] to[%d]\n", len * FRAME_LEN, (len + 1) * FRAME_LEN);
+					log.info(String.format("speech from[%d] to[%d]\n", len * FRAME_LEN, (len + 1) * FRAME_LEN));
 					// 持续发送包数据
 					streamingRecognizeFile(speechClient,
 							Arrays.copyOfRange(data, len * FRAME_LEN, (len + 1) * FRAME_LEN),
