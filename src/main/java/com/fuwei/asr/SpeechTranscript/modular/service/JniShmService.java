@@ -64,6 +64,8 @@ public class JniShmService {
 	
 	private native void JNI_shmTextPacketSend(int id, AsrShmResponse asrResponse);
 	
+	private native void JNI_shmTextPacketSend(int id, String asrResponseJsonStr);
+	
 	//////////////////////////////////////////////////////////////////////////////////
 	
 	public void shmInit() {
@@ -120,6 +122,11 @@ public class JniShmService {
 		log.info(String.format("start to send text packet in shm id:[%d]", id));
 		JNI_shmTextPacketSend(id, asrResponse);
 	}
+	
+	public void shmTextPacketSend(Integer id, String asrResponseJsonStr) {
+		log.info(String.format("start to send text packet in shm id:[%d]", id));
+		JNI_shmTextPacketSend(id, asrResponseJsonStr);
+	}	
 	
 	//////////////////////////////////////////////////////////////////////////////////	
 

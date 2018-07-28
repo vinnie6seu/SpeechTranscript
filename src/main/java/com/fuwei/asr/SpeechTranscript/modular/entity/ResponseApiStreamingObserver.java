@@ -7,6 +7,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.fastjson.JSONObject;
 import com.fuwei.asr.SpeechTranscript.modular.service.ShmPacketService;
 import com.google.api.gax.rpc.ApiStreamObserver;
 import com.google.cloud.speech.v1p1beta1.StreamingRecognitionResult;
@@ -34,64 +35,55 @@ public class ResponseApiStreamingObserver<T> implements ApiStreamObserver<T> {
 	@Override
 	public void onNext(T message) {
 		messages = message;
-		
+
 		log.info(String.format("id:[%d] response onNext message:[%s]", this.getId(), message.toString()));
 
-		
 		StreamingRecognizeResponse responses = (StreamingRecognizeResponse) message;
 		if (responses.getResultsList().size() > 0) {
-			
+
 			ShmPacketService shmPacketService = ShmPacketService.me();
-			
-			// 1.写结果
-			AsrShmResponse asrShmResponse = new AsrShmResponse();
-			
+
+			// 尼玛。排序会出错，发现谷歌是排好序的
 			List<StreamingRecognitionResult> streamingRecognitionResultList = responses.getResultsList();
-			Collections.sort(streamingRecognitionResultList, new Comparator<StreamingRecognitionResult>() {
-				@Override
-				public int compare(StreamingRecognitionResult arg0, StreamingRecognitionResult arg1) {
-					// 按照Stability进行降序排列
-					if (arg0.getStability() > arg1.getStability()) {
-						return -1;
-					}
-					if (arg0.getStability() == arg1.getStability()) {
-						return 0;
-					}
-					return 1;
-				}
-			});	
-			
+			AsrShmResponseItem curResultResponseItem = new AsrShmResponseItem();
+			AsrShmResponseItem curPredictResponseItem = new AsrShmResponseItem();
 			int len = 0;
 			for (StreamingRecognitionResult result : streamingRecognitionResultList) {
 
-				AsrShmResponseItem asrResponseItem = new AsrShmResponseItem();
-				asrResponseItem.setTranscript(result.getAlternativesList().get(0).getTranscript());
-				asrResponseItem.setStability(result.getStability());
-				asrResponseItem.setIs_final(result.getIsFinal());
-				asrResponseItem.setConfidence(result.getAlternativesList().get(0).getConfidence());
-
-				log.info(String.format("id:[%d] response item onNext message:[%s]", this.getId(), asrResponseItem.toString()));
-
 				if (len == 0) {
-					asrShmResponse.set_cur_result(asrResponseItem);
+					curResultResponseItem.setTranscript(result.getAlternativesList().get(0).getTranscript());
+					curResultResponseItem.setStability(result.getStability());
+					curResultResponseItem.setIs_final(result.getIsFinal());
+					curResultResponseItem.setConfidence(result.getAlternativesList().get(0).getConfidence());
+
+					log.info(String.format("id:[%d] response item:[%d] onNext message:[%s]", this.getId(), 0,
+							curResultResponseItem.toString()));
 				}
+
 				if (len == 1) {
-					asrShmResponse.set_cur_predict(asrResponseItem);
+					curPredictResponseItem.setTranscript(result.getAlternativesList().get(0).getTranscript());
+					curPredictResponseItem.setStability(result.getStability());
+					curPredictResponseItem.setIs_final(result.getIsFinal());
+					curPredictResponseItem.setConfidence(result.getAlternativesList().get(0).getConfidence());
+
+					log.info(String.format("id:[%d] response item:[%d] onNext message:[%s]", this.getId(), 1,
+							curPredictResponseItem.toString()));
 				}
-				
+
 				if (result.getIsFinal() == true) {
 					// 2.删除键值对
 					shmPacketService.requestIdDelete(this.getId());
-
-					asrShmResponse.set_cur_result(asrResponseItem);
 				}
-				
+
 				len++;
-			}	
-			
-			shmPacketService.textPacketSend(this.getId(), asrShmResponse);
+			}
+
+			// 1.写结果
+			AsrShmResponse asrShmResponse = new AsrShmResponse();
+			asrShmResponse.set_cur_result(curResultResponseItem);
+			asrShmResponse.set_cur_predict(curPredictResponseItem);
+			shmPacketService.textPacketSend(this.getId(), JSONObject.toJSONString(asrShmResponse));
 		}
-		
 	}
 
 	/**

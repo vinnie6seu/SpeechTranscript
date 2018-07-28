@@ -91,13 +91,17 @@ public class ShmPacketService {
 	}
 	
 	/**
-	 * 
+	 * 会报错！！！！！！！！！ 
 	 * @param id
 	 * @param asrResponse
 	 */
 	public void textPacketSend(Integer id, AsrShmResponse asrResponse) {
 		jniShmService.shmTextPacketSend(id, asrResponse);
 	}
+	
+	public void textPacketSend(Integer id, String asrResponseJsonStr) {
+		jniShmService.shmTextPacketSend(id, asrResponseJsonStr);
+	}	
 	
 	/**
 	 * 
