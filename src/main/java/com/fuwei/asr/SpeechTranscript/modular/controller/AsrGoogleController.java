@@ -23,7 +23,7 @@ import com.fuwei.asr.SpeechTranscript.common.form.HttpJson;
 import com.fuwei.asr.SpeechTranscript.common.form.User;
 import com.fuwei.asr.SpeechTranscript.constant.CodeMsgEnum;
 import com.fuwei.asr.SpeechTranscript.constant.SpeechPacketStatusEnum;
-import com.fuwei.asr.SpeechTranscript.modular.entity.AsrShmRequest;
+import com.fuwei.asr.SpeechTranscript.modular.entity.AsrShmRequestAndRpcCall;
 import com.fuwei.asr.SpeechTranscript.modular.service.JniShmService;
 import com.fuwei.asr.SpeechTranscript.modular.service.ShmPacketService;
 import com.fuwei.asr.SpeechTranscript.util.ResultVoUtil;
@@ -155,13 +155,13 @@ public class AsrGoogleController extends BaseController {
 			 * 2.2  收取非阻塞队列中的（如果有数据包）数据调用Request.onNext
 			 * 2.3 按照is_complete_receive，调用onComplete
 			 */
-			AsrShmRequest asrShmRequest = shmPacketService.requestIdGet(requestHttpJson.getId());
-			if (asrShmRequest != null) {
+			AsrShmRequestAndRpcCall asrShmRequestAndRpcCall = shmPacketService.requestIdGet(requestHttpJson.getId());
+			if (asrShmRequestAndRpcCall != null) {
 
 				// 查看记录标识
 				Integer id = requestHttpJson.getId();
-				boolean is_complete_send = asrShmRequest.is_is_send_complete();
-				int total_send_packet_num = asrShmRequest.get_total_send_packet_num();
+				boolean is_complete_send = asrShmRequestAndRpcCall.is_is_send_complete();
+				int total_send_packet_num = asrShmRequestAndRpcCall.get_total_send_packet_num();
 								
 //				asrShmRequest.set_is_send_complete(is_complete_send);
 //				asrShmRequest.set_total_send_packet_num(total_send_packet_num);				
@@ -175,7 +175,8 @@ public class AsrGoogleController extends BaseController {
 					
 					log.info(String.format("id:[%d] send speech packet len:[%d]", requestHttpJson.getId(), speechData.length));
 					
-					asrShmRequest.get_requestObserver().onNext(StreamingRecognizeRequest.newBuilder().setAudioContent(ByteString.copyFrom(speechData)).build());
+					// 调用谷歌 api 发送数据
+					asrShmRequestAndRpcCall.continueOnNext(speechData);
 					
 					log.info(String.format("success to call onNext id:[%d] send speech packet len:[%d]", requestHttpJson.getId(), speechData.length));
 				}
@@ -184,13 +185,11 @@ public class AsrGoogleController extends BaseController {
 					
 					log.info(String.format("id:[%d] call onCompleted", requestHttpJson.getId()));
 					
-					asrShmRequest.get_requestObserver().onCompleted();
+					// 调用谷歌 api 确认发送完毕完成发送
+					asrShmRequestAndRpcCall.completeOnNext();
 					
-					// 收取最终结果
-					StreamingRecognizeResponse responses = asrShmRequest.get_responseObserver().future().get();
-					StreamingRecognitionResult result = responses.getResultsList().get(0);
-					SpeechRecognitionAlternative alternative = result.getAlternativesList().get(0);
-					log.info(String.format("id:[%d] Transcript: %s\n", requestHttpJson.getId(), alternative.getTranscript()));					
+					// 调用谷歌 api 收取最终结果					
+					log.info(String.format("id:[%d] Transcript: %s\n", requestHttpJson.getId(), asrShmRequestAndRpcCall.getTranscriptResult()));					
 				}
 			} else {
 				
@@ -203,17 +202,25 @@ public class AsrGoogleController extends BaseController {
 			}
 
 		} else if (SpeechPacketStatusEnum.MSP_AUDIO_LAST.value() == requestHttpJson.getAsrSpeechPackStatus()) {
-			// 3.
-			AsrShmRequest asrShmRequest = shmPacketService.requestIdGet(requestHttpJson.getId());
-			if (asrShmRequest != null) {
+
+			/**
+			 * 3.last
+			 * 3.1  没有找到相应 id 的缓存信息返回报错
+			 * 3.2  更新记录，得到已经发送完毕，总的发送包数量
+			 * 3.3  收取非阻塞队列中的（如果有数据包）数据调用Request.onNext
+			 * 3.4 按照is_complete_receive，调用onComplete
+			 */
+			AsrShmRequestAndRpcCall asrShmRequestAndRpcCall = shmPacketService.requestIdGet(requestHttpJson.getId());
+			if (asrShmRequestAndRpcCall != null) {
 
 				Integer id = requestHttpJson.getId();
 				boolean is_complete_send = (SpeechPacketStatusEnum.MSP_AUDIO_LAST.value() == requestHttpJson.getAsrSpeechPackStatus());
 				int total_send_packet_num = requestHttpJson.getTotalSendPacketNum();
+				
 				// 更新记录，得到已经发送完毕，总的发送包数量
-				asrShmRequest.set_is_send_complete(is_complete_send);
-				asrShmRequest.set_total_send_packet_num(total_send_packet_num);
-				shmPacketService.requestIdUpdate(id, asrShmRequest);
+				asrShmRequestAndRpcCall.set_is_send_complete(is_complete_send);
+				asrShmRequestAndRpcCall.set_total_send_packet_num(total_send_packet_num);
+				shmPacketService.requestIdUpdate(id, asrShmRequestAndRpcCall);
 				
 				Integer batch_num = 0;
 				Boolean is_complete_receive = false;
@@ -224,20 +231,21 @@ public class AsrGoogleController extends BaseController {
 					
 					log.info(String.format("id:[%d] send speech packet len:[%d]", requestHttpJson.getId(), speechData.length));
 					
-					asrShmRequest.get_requestObserver().onNext(StreamingRecognizeRequest.newBuilder().setAudioContent(ByteString.copyFrom(speechData)).build());
+					// 调用谷歌 api 发送数据
+					asrShmRequestAndRpcCall.continueOnNext(speechData);
+					
+					log.info(String.format("success to call onNext id:[%d] send speech packet len:[%d]", requestHttpJson.getId(), speechData.length));
 				}
 
 				if (is_complete_receive == true) {
-					
+
 					log.info(String.format("id:[%d] call onCompleted", requestHttpJson.getId()));
 					
-					asrShmRequest.get_requestObserver().onCompleted();
+					// 调用谷歌 api 确认发送完毕完成发送
+					asrShmRequestAndRpcCall.completeOnNext();
 					
-					// 收取最终结果
-					StreamingRecognizeResponse responses = asrShmRequest.get_responseObserver().future().get();
-					StreamingRecognitionResult result = responses.getResultsList().get(0);
-					SpeechRecognitionAlternative alternative = result.getAlternativesList().get(0);
-					log.info(String.format("id:[%d] Transcript: %s\n", requestHttpJson.getId(), alternative.getTranscript()));							
+					// 调用谷歌 api 收取最终结果					
+					log.info(String.format("id:[%d] Transcript: %s\n", requestHttpJson.getId(), asrShmRequestAndRpcCall.getTranscriptResult()));					
 				}
 			} else {
 				

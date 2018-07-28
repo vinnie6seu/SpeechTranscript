@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fuwei.asr.SpeechTranscript.constant.CodeMsgEnum;
-import com.fuwei.asr.SpeechTranscript.modular.entity.AsrShmRequest;
+import com.fuwei.asr.SpeechTranscript.modular.entity.AsrShmRequestAndRpcCall;
 import com.fuwei.asr.SpeechTranscript.modular.entity.ResponseApiStreamingObserver;
 import com.fuwei.asr.SpeechTranscript.modular.service.ShmPacketService;
 import com.fuwei.asr.SpeechTranscript.util.ResultVoUtil;
@@ -67,7 +67,6 @@ public class QuickstartSample {
 		return 999;
 	}
 	
-	private AsrShmRequest asrShmRequest = null;
 	
 	public void getResultText() throws InterruptedException, ExecutionException {
 
@@ -106,7 +105,7 @@ public class QuickstartSample {
 	 * @param fileName
 	 *            the path to a PCM audio file to transcribe.
 	 */
-	public void streamingRecognizeFile(SpeechClient speech, byte[] data, AUDIO_FLAG audioFlg, HttpSession httpSession)
+	public void streamingRecognizeFile(byte[] data, AUDIO_FLAG audioFlg, HttpSession httpSession)
 			throws Exception, IOException {
 
 		try {
@@ -117,11 +116,11 @@ public class QuickstartSample {
 				// 1.init，新建键值对<id, [speechClient, 两个观察者, 已收到包数量, 发送完成标识, 总发送包数量]>，发送配置
 //				AsrShmRequest asrShmRequest = shmPacketService.requestIdCreate(getId());	
 				
-				asrShmRequest = shmPacketService.requestIdCreate(getId());	
+				AsrShmRequestAndRpcCall asrShmRequest = shmPacketService.requestIdCreate(getId());	
 				
 			} else if (AUDIO_FLAG.MSP_AUDIO_SAMPLE_CONTINUE == audioFlg) {
 
-//				AsrShmRequest asrShmRequest = shmPacketService.requestIdGet(getId());
+				AsrShmRequestAndRpcCall asrShmRequest = shmPacketService.requestIdGet(getId());
 				
 				// 2.
 				asrShmRequest.continueOnNext(data);
@@ -130,7 +129,7 @@ public class QuickstartSample {
 
 			} else if (AUDIO_FLAG.MSP_AUDIO_SAMPLE_LAST == audioFlg) {
 		
-//				AsrShmRequest asrShmRequest = shmPacketService.requestIdGet(getId());
+				AsrShmRequestAndRpcCall asrShmRequest = shmPacketService.requestIdGet(getId());
 		 
 				// 3.
 				asrShmRequest.completeOnNext();
@@ -159,7 +158,7 @@ public class QuickstartSample {
 	public Object handle(HttpSession httpSession) throws Exception {
 
 		// 初始化客户端
-		try (SpeechClient speechClient = SpeechClient.create()) {
+		try {
 
 			// 文件位置
 			String fileName = "/root/qbyao/my_project/SpeechTranscript/src/main/resources/audio.raw";
@@ -177,7 +176,7 @@ public class QuickstartSample {
 			long startTime = System.currentTimeMillis();// 记录开始时间
 
 			// 初始化
-			streamingRecognizeFile(speechClient, null, AUDIO_FLAG.MSP_AUDIO_SAMPLE_INIT, httpSession);
+			streamingRecognizeFile(null, AUDIO_FLAG.MSP_AUDIO_SAMPLE_INIT, httpSession);
 
 			int FRAME_LEN = 3200;
 			int len = 0;
@@ -185,16 +184,14 @@ public class QuickstartSample {
 				if ((len + 1) * FRAME_LEN > data.length) {
 
 					log.info(String.format("speech from[%d] to[%d]\n", len * FRAME_LEN, data.length));
-					streamingRecognizeFile(speechClient, Arrays.copyOfRange(data, len * FRAME_LEN, data.length),
+					streamingRecognizeFile(Arrays.copyOfRange(data, len * FRAME_LEN, data.length),
 							AUDIO_FLAG.MSP_AUDIO_SAMPLE_CONTINUE, httpSession);
 
 				} else {
 
 					log.info(String.format("speech from[%d] to[%d]\n", len * FRAME_LEN, (len + 1) * FRAME_LEN));
 					// 持续发送包数据
-					streamingRecognizeFile(speechClient,
-							Arrays.copyOfRange(data, len * FRAME_LEN, (len + 1) * FRAME_LEN),
-							AUDIO_FLAG.MSP_AUDIO_SAMPLE_CONTINUE, httpSession);
+					streamingRecognizeFile(Arrays.copyOfRange(data, len * FRAME_LEN, (len + 1) * FRAME_LEN), AUDIO_FLAG.MSP_AUDIO_SAMPLE_CONTINUE, httpSession);
 
 				}
 				len++;
@@ -205,14 +202,15 @@ public class QuickstartSample {
 			}
 
 			// 完成
-			streamingRecognizeFile(speechClient, null, AUDIO_FLAG.MSP_AUDIO_SAMPLE_LAST, httpSession);
+			streamingRecognizeFile(null, AUDIO_FLAG.MSP_AUDIO_SAMPLE_LAST, httpSession);
 
 			long endTime = System.currentTimeMillis();// 记录结束时间
 
 			float excTime = (float) (endTime - startTime) / 1000;
 
 			log.info("执行时间：" + excTime + "s");
-
+		} finally {
+			
 		}
 		
 		

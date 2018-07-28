@@ -28,6 +28,9 @@ public class ResponseApiStreamingObserver<T> implements ApiStreamObserver<T> {
 		this.id = id;
 	}
 
+	/**
+	 * 谷歌 api 将中间结果正常回调返回
+	 */
 	@Override
 	public void onNext(T message) {
 		messages = message;
@@ -91,6 +94,9 @@ public class ResponseApiStreamingObserver<T> implements ApiStreamObserver<T> {
 		
 	}
 
+	/**
+	 * 出现异常谷歌结果进行回调
+	 */
 	@Override
 	public void onError(Throwable t) {
 		future.setException(t);
@@ -109,6 +115,9 @@ public class ResponseApiStreamingObserver<T> implements ApiStreamObserver<T> {
 		shmPacketService.requestIdDelete(this.getId());
 	}
 
+	/**
+	 * 将最终结果保存，java 代码可以获取最终结果
+	 */
 	@Override
 	public void onCompleted() {
 		future.set(messages);

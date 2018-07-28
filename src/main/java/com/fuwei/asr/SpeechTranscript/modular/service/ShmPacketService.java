@@ -9,7 +9,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.fuwei.asr.SpeechTranscript.common.bean.SpringContextHolder;
-import com.fuwei.asr.SpeechTranscript.modular.entity.AsrShmRequest;
+import com.fuwei.asr.SpeechTranscript.modular.entity.AsrShmRequestAndRpcCall;
 import com.fuwei.asr.SpeechTranscript.modular.entity.AsrShmResponse;
 import com.fuwei.asr.SpeechTranscript.modular.entity.ResponseApiStreamingObserver;
 import com.google.api.gax.rpc.ApiStreamObserver;
@@ -46,11 +46,11 @@ public class ShmPacketService {
 	 * @throws IOException 
 	 */
 	@CachePut(value = "asrCacheMap", key = "#id")
-	public AsrShmRequest requestIdCreate(Integer id) throws IOException {
+	public AsrShmRequestAndRpcCall requestIdCreate(Integer id) throws IOException {
 		log.info(String.format("step into new create request id:[%d]", id));
 		
 		// 创建
-		AsrShmRequest asrShmRequest = new AsrShmRequest(id);
+		AsrShmRequestAndRpcCall asrShmRequest = new AsrShmRequestAndRpcCall(id);
 
 		return asrShmRequest;
 	}
@@ -61,7 +61,7 @@ public class ShmPacketService {
 	 * @return
 	 */
 	@Cacheable(value = "asrCacheMap", key = "#id")
-	public AsrShmRequest requestIdGet(Integer id) {
+	public AsrShmRequestAndRpcCall requestIdGet(Integer id) {
 		return null;
 	}	
 	
@@ -72,7 +72,7 @@ public class ShmPacketService {
 	 * @throws IOException
 	 */
 	@CachePut(value = "asrCacheMap", key = "#id")
-	public AsrShmRequest requestIdUpdate(Integer id, AsrShmRequest asrShmRequest) throws IOException {
+	public AsrShmRequestAndRpcCall requestIdUpdate(Integer id, AsrShmRequestAndRpcCall asrShmRequest) throws IOException {
 
 		return asrShmRequest;
 	}
