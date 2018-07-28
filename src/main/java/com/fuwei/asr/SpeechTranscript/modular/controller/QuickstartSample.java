@@ -156,6 +156,7 @@ public class QuickstartSample {
 	 */
 	@GetMapping("/handle")
 	public Object handle(HttpSession httpSession) throws Exception {
+		
 
 		// 初始化客户端
 		try {

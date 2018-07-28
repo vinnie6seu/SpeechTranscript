@@ -86,7 +86,7 @@ public class ShmPacketService {
 	 * @param is_complete_receive
 	 * @return
 	 */
-	public byte[] speechPacketReceive(Integer id, boolean is_complete_send, int total_send_packet_num, Integer batch_num, Boolean is_complete_receive) {
+	public byte[] speechPacketReceive(Integer id, boolean is_complete_send, int total_send_packet_num, Integer batch_num, Integer is_complete_receive) {
 		return jniShmService.shmSpeechPacketReceive(id, is_complete_send, total_send_packet_num, batch_num, is_complete_receive);
 	}
 	

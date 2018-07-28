@@ -167,7 +167,8 @@ public class AsrGoogleController extends BaseController {
 //				asrShmRequest.set_total_send_packet_num(total_send_packet_num);				
 				
 				Integer batch_num = 0;
-				Boolean is_complete_receive = false;
+//				Boolean is_complete_receive = false;
+				Integer is_complete_receive = 0;
 				// 得到语音数据、读到的语音包数、是否全部读完了[发送完成标志comlete && 已收到包数量 == 总发送包数量]
 				byte[] speechData = shmPacketService.speechPacketReceive(id, is_complete_send, total_send_packet_num, batch_num, is_complete_receive);
 
@@ -181,7 +182,7 @@ public class AsrGoogleController extends BaseController {
 					log.info(String.format("success to call onNext id:[%d] send speech packet len:[%d]", requestHttpJson.getId(), speechData.length));
 				}
 
-				if (is_complete_receive == true) {
+				if (is_complete_receive != 0) {
 					
 					log.info(String.format("id:[%d] call onCompleted", requestHttpJson.getId()));
 					
@@ -223,7 +224,8 @@ public class AsrGoogleController extends BaseController {
 				shmPacketService.requestIdUpdate(id, asrShmRequestAndRpcCall);
 				
 				Integer batch_num = 0;
-				Boolean is_complete_receive = false;
+//				Boolean is_complete_receive = false;
+				Integer is_complete_receive = 0;
 				// 得到语音数据、读到的语音包数、是否全部读完了[发送完成标志comlete && 已收到包数量 == 总发送包数量]
 				byte[] speechData = shmPacketService.speechPacketReceive(id, is_complete_send, total_send_packet_num, batch_num, is_complete_receive);
 
@@ -237,7 +239,7 @@ public class AsrGoogleController extends BaseController {
 					log.info(String.format("success to call onNext id:[%d] send speech packet len:[%d]", requestHttpJson.getId(), speechData.length));
 				}
 
-				if (is_complete_receive == true) {
+				if (is_complete_receive != 0) {
 
 					log.info(String.format("id:[%d] call onCompleted", requestHttpJson.getId()));
 					

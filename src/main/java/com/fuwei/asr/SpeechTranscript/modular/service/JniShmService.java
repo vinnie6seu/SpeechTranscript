@@ -60,7 +60,7 @@ public class JniShmService {
 	
 	//////////////////////////////////////////////////////////////////////////////////
 	
-	private native byte[] JNI_shmSpeechPacketReceive(int id, boolean is_complete_send, int total_send_packet_num, Integer batch_num, Boolean is_complete_receive);
+	private native byte[] JNI_shmSpeechPacketReceive(int id, boolean is_complete_send, int total_send_packet_num, Integer batch_num, Integer is_complete_receive);
 	
 	private native void JNI_shmTextPacketSend(int id, AsrShmResponse asrResponse);
 	
@@ -113,7 +113,7 @@ public class JniShmService {
 	
 	//////////////////////////////////////////////////////////////////////////////////	
 	
-	public byte[] shmSpeechPacketReceive(Integer id, boolean is_complete_send, int total_send_packet_num, Integer batch_num, Boolean is_complete_receive) {
+	public byte[] shmSpeechPacketReceive(Integer id, boolean is_complete_send, int total_send_packet_num, Integer batch_num, Integer is_complete_receive) {
 		log.info(String.format("start to receive speech packet in shm id:[%d]", id));
 		return JNI_shmSpeechPacketReceive(id, is_complete_send, total_send_packet_num, batch_num, is_complete_receive);
 	}
