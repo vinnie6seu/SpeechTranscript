@@ -37,53 +37,72 @@ public class ResponseApiStreamingObserver<T> implements ApiStreamObserver<T> {
 		messages = message;
 
 		log.info(String.format("id:[%d] response onNext message:[%s]", this.getId(), message.toString()));
-
+		
 		StreamingRecognizeResponse responses = (StreamingRecognizeResponse) message;
-		if (responses.getResultsList().size() > 0) {
+		ShmPacketService shmPacketService = ShmPacketService.me();
 
-			ShmPacketService shmPacketService = ShmPacketService.me();
+		// 后面注意修改这个判断条件
+		if (message.toString().indexOf("error") != -1) {
+			
+			log.info("handle onNext response exception");
 
-			// 尼玛。排序会出错，发现谷歌是排好序的
-			List<StreamingRecognitionResult> streamingRecognitionResultList = responses.getResultsList();
-			AsrShmResponseItem curResultResponseItem = new AsrShmResponseItem();
-			AsrShmResponseItem curPredictResponseItem = new AsrShmResponseItem();
-			int len = 0;
-			for (StreamingRecognitionResult result : streamingRecognitionResultList) {
-
-				if (len == 0) {
-					curResultResponseItem.setTranscript(result.getAlternativesList().get(0).getTranscript());
-					curResultResponseItem.setStability(result.getStability());
-					curResultResponseItem.setIs_final(result.getIsFinal());
-					curResultResponseItem.setConfidence(result.getAlternativesList().get(0).getConfidence());
-
-					log.info(String.format("id:[%d] response item:[%d] onNext message:[%s]", this.getId(), 0,
-							curResultResponseItem.toString()));
-				}
-
-				if (len == 1) {
-					curPredictResponseItem.setTranscript(result.getAlternativesList().get(0).getTranscript());
-					curPredictResponseItem.setStability(result.getStability());
-					curPredictResponseItem.setIs_final(result.getIsFinal());
-					curPredictResponseItem.setConfidence(result.getAlternativesList().get(0).getConfidence());
-
-					log.info(String.format("id:[%d] response item:[%d] onNext message:[%s]", this.getId(), 1,
-							curPredictResponseItem.toString()));
-				}
-
-				if (result.getIsFinal() == true) {
-					// 2.删除键值对
-					shmPacketService.requestIdDelete(this.getId());
-				}
-
-				len++;
-			}
-
-			// 1.写结果
+			// 1.写异常
 			AsrShmResponse asrShmResponse = new AsrShmResponse();
-			asrShmResponse.set_cur_result(curResultResponseItem);
-			asrShmResponse.set_cur_predict(curPredictResponseItem);
-			shmPacketService.textPacketSend(this.getId(), JSONObject.toJSONString(asrShmResponse));
+			asrShmResponse.setIs_exception(true);
+			asrShmResponse.setException_str(responses.getError().getMessage());
+			
+			shmPacketService.textPacketSend(this.getId(), asrShmResponse);
+			
+			// 2.删除键值对
+			shmPacketService.requestIdDelete(this.getId());
+
+		} else {
+			// 正常情况下处理
+			if (responses.getResultsList().size() > 0) {
+
+				// 尼玛。排序会出错，发现谷歌是排好序的
+				List<StreamingRecognitionResult> streamingRecognitionResultList = responses.getResultsList();
+				AsrShmResponseItem curResultResponseItem = new AsrShmResponseItem();
+				AsrShmResponseItem curPredictResponseItem = new AsrShmResponseItem();
+				int len = 0;
+				for (StreamingRecognitionResult result : streamingRecognitionResultList) {
+
+					if (len == 0) {
+						curResultResponseItem.setTranscript(result.getAlternativesList().get(0).getTranscript());
+						curResultResponseItem.setStability(result.getStability());
+						curResultResponseItem.setIs_final(result.getIsFinal());
+						curResultResponseItem.setConfidence(result.getAlternativesList().get(0).getConfidence());
+
+						log.info(String.format("id:[%d] response item:[%d] onNext message:[%s]", this.getId(), 0,
+								curResultResponseItem.toString()));
+					}
+
+					if (len == 1) {
+						curPredictResponseItem.setTranscript(result.getAlternativesList().get(0).getTranscript());
+						curPredictResponseItem.setStability(result.getStability());
+						curPredictResponseItem.setIs_final(result.getIsFinal());
+						curPredictResponseItem.setConfidence(result.getAlternativesList().get(0).getConfidence());
+
+						log.info(String.format("id:[%d] response item:[%d] onNext message:[%s]", this.getId(), 1,
+								curPredictResponseItem.toString()));
+					}
+
+					if (result.getIsFinal() == true) {
+						// 2.删除键值对
+						shmPacketService.requestIdDelete(this.getId());
+					}
+
+					len++;
+				}
+
+				// 1.写结果
+				AsrShmResponse asrShmResponse = new AsrShmResponse();
+				asrShmResponse.set_cur_result(curResultResponseItem);
+				asrShmResponse.set_cur_predict(curPredictResponseItem);
+				shmPacketService.textPacketSend(this.getId(), JSONObject.toJSONString(asrShmResponse));
+			}			
 		}
+		
 	}
 
 	/**
