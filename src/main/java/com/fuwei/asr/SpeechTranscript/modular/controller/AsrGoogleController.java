@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -166,9 +167,9 @@ public class AsrGoogleController extends BaseController {
 //				asrShmRequest.set_is_send_complete(is_complete_send);
 //				asrShmRequest.set_total_send_packet_num(total_send_packet_num);				
 				
-				Integer batch_num = 0;
+				Integer batch_num = new Integer(0);
 //				Boolean is_complete_receive = false;
-				Integer is_complete_receive = 0;
+				Integer is_complete_receive = new Integer(0);
 				// 得到语音数据、读到的语音包数、是否全部读完了[发送完成标志comlete && 已收到包数量 == 总发送包数量]
 				byte[] speechData = shmPacketService.speechPacketReceive(id, is_complete_send, total_send_packet_num, batch_num, is_complete_receive);
 
@@ -223,12 +224,12 @@ public class AsrGoogleController extends BaseController {
 				asrShmRequestAndRpcCall.set_total_send_packet_num(total_send_packet_num);
 				shmPacketService.requestIdUpdate(id, asrShmRequestAndRpcCall);
 				
-				Integer batch_num = 0;
+				Integer batch_num = new Integer(0);
 //				Boolean is_complete_receive = false;
-				Integer is_complete_receive = 0;
+				Integer is_complete_receive = new Integer(0);
 				// 得到语音数据、读到的语音包数、是否全部读完了[发送完成标志comlete && 已收到包数量 == 总发送包数量]
 				byte[] speechData = shmPacketService.speechPacketReceive(id, is_complete_send, total_send_packet_num, batch_num, is_complete_receive);
-
+				
 				if (batch_num != 0) {
 					
 					log.info(String.format("id:[%d] send speech packet len:[%d]", requestHttpJson.getId(), speechData.length));
